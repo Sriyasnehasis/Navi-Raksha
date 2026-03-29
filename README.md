@@ -2,7 +2,7 @@
 
 ## 🚑 Project Overview
 
-AI-powered EMS platform for Navi Mumbai integrating:
+AI-powered EMS platform for Navi Mumbai, integrating:
 
 - **GNN ETA Prediction** - Predict ambulance arrival time (< 3 min error)
 - **Dynamic A\* Routing** - Generate fastest routes in real-time
@@ -41,14 +41,6 @@ navi-raksha/
 └── requirements.txt
 ```
 
-## 📅 Timeline (13 weeks)
-
-- **Weeks 1-2:** Setup + Literature review
-- **Weeks 3-4:** Road graph extraction + feature engineering
-- **Weeks 5-7:** ML model training (RF, LSTM, GNN)
-- **Weeks 8-9:** Routing + dispatch classifier
-- **Weeks 10-12:** Streamlit dashboards + integration
-- **Weeks 13-15:** Testing + research paper + presentation
 
 ## 🎯 Key Deliverables
 
@@ -88,6 +80,4 @@ python -c "import torch; print('Ready!')"
 
 ---
 
-**Status:** Week 1 (Setup Phase)
-**Last Updated:** March 29, 2026
-**Team Lead:** Sriya
+
