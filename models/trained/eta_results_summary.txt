@@ -1,0 +1,44 @@
+
+ETA PREDICTION MODEL - RESULTS SUMMARY
+======================================
+
+Dataset:
+  Training samples: 8000
+  Validation samples: 1000
+  Test samples: 1000
+
+Model Architecture:
+  Type: Feedforward Neural Network
+  Input features: 6
+  Hidden layers: [32, 16]
+  Activation: ReLU
+
+Training:
+  Epochs: 50
+  Learning rate: 1e-3
+  Loss function: L1 (MAE)
+  Best training loss: 0.115385
+
+Validation Results:
+  MAE: 0.1006 min
+  RMSE: 0.2038 min
+  R²: 0.998061
+
+Test Results:
+  MAE: 0.1097 min
+  RMSE: 0.2186 min
+  R²: 0.997644
+
+Comparison:
+  Your Model MAE: 0.1097 min
+
+Key Features Used:
+  ✓ Time features (hour, day, month)
+  ✓ Distance
+  ✓ Vehicle speed
+  ✓ Driver experience
+
+Insights:
+  ✓ Model learns relationship between traffic/time and ETA
+  ✓ Simple architecture → fast and efficient
+  ✓ Can be improved with more features
