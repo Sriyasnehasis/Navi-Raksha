@@ -51,9 +51,18 @@ def run():
             })
         return incidents
 
-    # Generate data
-    ambulances = generate_ambulances(num_ambulances)
-    incidents = generate_incidents(num_incidents)
+    # Generate data only when count changes or first load
+    if ('sim_ambulances' not in st.session_state or
+        st.session_state.get('sim_num_amb') != num_ambulances or
+        st.session_state.get('sim_num_inc') != num_incidents):
+
+        st.session_state.sim_ambulances = generate_ambulances(num_ambulances)
+        st.session_state.sim_incidents = generate_incidents(num_incidents)
+        st.session_state.sim_num_amb = num_ambulances
+        st.session_state.sim_num_inc = num_incidents
+
+    ambulances = st.session_state.sim_ambulances
+    incidents = st.session_state.sim_incidents
 
     # Display data
     col1, col2 = st.columns(2)
@@ -102,6 +111,7 @@ def run():
 
     with col1:
         if st.button("🔄 Generate New Data"):
+            st.session_state.pop('sim_ambulances', None)
             st.rerun()
 
     with col2:
