@@ -5,6 +5,7 @@
 Flask==2.3.3
 Flask-CORS==4.0.0
 Flask-Caching==2.0.2
+Flask-SQLAlchemy>=3.0.0
 gunicorn==21.2.0
 
 # Data Processing (lightweight)
