@@ -1,5 +1,5 @@
-# NaviRaksha Backend - Runtime Dependencies Only
-# (Training libraries removed - models pre-trained and loaded from .pkl files)
+# NaviRaksha Backend - Render Production Dependencies
+# Lightweight runtime-only (training libs excluded — models pre-loaded from .pkl)
 
 # Web Framework
 Flask==2.3.3
@@ -7,25 +7,19 @@ Flask-CORS==4.0.0
 Flask-Caching==2.0.2
 gunicorn==21.2.0
 
-# Data Processing
+# Data Processing (lightweight)
 pandas>=1.5.0
 numpy>=1.23.0
 
 # Database
 SQLAlchemy==2.0.23
 
-# Geospatial & Routing
+# Graph / Routing (lightweight)
 networkx>=3.0
-osmnx>=1.6.0
-geopandas>=0.11.0
-shapely>=2.0.0
 
-# ML Model Loading (inference only - no training)
+# ML inference only (no training)
 scikit-learn>=1.2.0
-
-# Visualization
-folium>=0.14.0
-plotly>=5.0.0
+joblib>=1.2.0
 
 # Utilities
 python-dotenv==1.0.0
