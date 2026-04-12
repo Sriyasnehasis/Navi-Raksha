@@ -7,7 +7,8 @@ from datetime import datetime
 import random
 import requests
 
-BACKEND_URL = "http://localhost:8000"
+# Get backend URL from secrets (production) or use localhost (development)
+BACKEND_URL = st.secrets.get("backend", {}).get("API_URL", "http://localhost:8000")
 
 
 def run():
