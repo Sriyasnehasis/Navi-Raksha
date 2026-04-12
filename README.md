@@ -1,247 +1,162 @@
-# 🚑 NaviRaksha: GNN-Based Emergency Medical Services Platform
+# 🚑 NaviRaksha — GNN-Based Emergency Medical Response System
 
-## 📌 Project Status (Apr 7, 2026)
+> **Intelligent Ambulance Dispatch & ETA Prediction for Navi Mumbai**
+> 
+> Amity University Mumbai | Final Year Research Project | 2026
 
-**Phase:** 🟢 Active Development | **Timeline:** Apr 7 - May 1, 2026 | **Target:** Production Ready
-
-### ✅ Completed
-
-- Dataset generation (10,000 realistic EMS OD pairs)
-- RF baseline model (4.2 min MAE)
-- 4 training notebooks (RF, LSTM, GNN analysis)
-- Google Drive integration
-- Git workflow setup (main + test branches)
-
-### 🔄 In Progress
-
-- LSTM training (target: MAE < 3.9 min)
-- GNN training (target: MAE < 3.0 min)
-
-### ⏳ Pending
-
-- Routing module (Turya)
-- Frontend development (Arisha)
-- Paper writing & submission
+[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-3.1-green)](https://flask.palletsprojects.com)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.25-red)](https://streamlit.io)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ---
 
-## 🚑 Project Overview
+## 📌 Overview
 
-AI-powered EMS platform for Navi Mumbai, integrating:
+NaviRaksha is an AI-powered Emergency Medical Services (EMS) platform that optimizes ambulance dispatch and routing in **Navi Mumbai, India**. The system combines:
 
-- **GNN ETA Prediction** 🟢 Notebooks Created | Predict ambulance arrival time (< 3 min error)
-- **LSTM ETA Prediction** 🟢 Notebooks Created | Alternative deep learning approach
-- **Dynamic A\* Routing** ⏳ In Development | Generate fastest routes in real-time
-- **Smart Dispatch** ⏳ Planned | Assign ALS/BLS/Mini/Bike based on incident location
-- **Hospital Recommender** ⏳ Planned | Rank hospitals by ETA + bed availability
-- **Live Citizen Tracking** ⏳ Planned | Real-time ambulance position + ETA countdown
-- **Dispatcher Dashboard** ⏳ Planned | Fleet management + incident queue + KPIs
+- **Machine Learning** — ETA prediction using Random Forest, LSTM, and GNN models
+- **A\* Routing** — Traffic-aware pathfinding on real OSM road networks
+- **Smart Dispatch** — Severity-based ambulance type classification (ALS/BLS/Mini/Bike)
+- **Hospital Ranking** — Dynamic ranking by ETA + bed availability
+- **Real-time Dashboard** — Live fleet tracking with interactive maps
 
----
+## 🏗️ Architecture
 
-## 👥 Team Members & Assignments
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    STREAMLIT FRONTEND                         │
+│  ┌──────────────┐  ┌───────────────┐  ┌──────────────────┐  │
+│  │ Citizen      │  │ Dispatcher    │  │ Simulation       │  │
+│  │ Tracker      │  │ Control Room  │  │ Engine           │  │
+│  └──────┬───────┘  └──────┬────────┘  └──────┬───────────┘  │
+│         └──────────────────┼─────────────────┘              │
+│                            │ REST API                        │
+├────────────────────────────┼─────────────────────────────────┤
+│                    FLASK BACKEND API                          │
+│  ┌──────────┐  ┌──────────┐  ┌───────────┐  ┌───────────┐  │
+│  │ /predict  │  │ /dispatch│  │ /ambulances│  │ /hospitals│  │
+│  │ -eta      │  │          │  │ /active    │  │           │  │
+│  └────┬─────┘  └────┬─────┘  └─────┬─────┘  └─────┬─────┘  │
+│       │              │              │              │         │
+│  ┌────┴─────┐  ┌────┴──────┐  ┌────┴──────┐               │
+│  │ RF Model │  │ Dispatch  │  │ SQLAlchemy │               │
+│  │ (ML)     │  │ Classifier│  │ Database   │               │
+│  └──────────┘  └───────────┘  └───────────┘               │
+└──────────────────────────────────────────────────────────────┘
+```
 
-| Name        | Role                    | Assigned Task                   | Branch                |
-| ----------- | ----------------------- | ------------------------------- | --------------------- |
-| **Sriya**   | Data Engineer + Lead    | Dataset generation ✅ Complete  | main / test shared    |
-| **Anjanaa** | ML Engineer             | GNN training + validation       | test (merged to main) |
-| **Turya**   | Routing Developer       | A\* routing + dispatch logic    | test (merged to main) |
-| **Arisha**  | Frontend + Paper Writer | Streamlit frontend + IEEE paper | test (merged to main) |
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.11+
+- pip
+
+### 1. Clone & Setup
+```bash
+git clone https://github.com/Sriyasnehasis/Navi-Raksha.git
+cd navi-raksha
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+```
+
+### 2. Start Backend API
+```bash
+.venv\Scripts\python.exe modules\backend\app.py
+# Server runs on http://localhost:8000
+```
+
+### 3. Start Frontend Dashboard
+```bash
+cd ui
+.venv\Scripts\streamlit.exe run app.py
+# Dashboard runs on http://localhost:8501
+```
+
+### 4. Run Tests
+```bash
+python tests/test_all.py
+```
+
+### 5. Docker (Optional)
+```bash
+docker-compose up --build
+# Backend: http://localhost:8000
+# Frontend: http://localhost:8501
+```
+
+## 📊 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check + model status |
+| POST | `/predict-eta` | Predict ambulance ETA |
+| POST | `/dispatch` | Full emergency dispatch |
+| GET | `/ambulances/active` | List active ambulances |
+| GET | `/incidents/active` | List active incidents |
+| GET | `/hospitals` | List hospitals with beds |
+| POST | `/admin/db/seed` | Seed sample data |
+| POST | `/admin/db/reset` | Reset database |
+
+**Full CRUD** available for ambulances, incidents, and hospitals via `/admin/` endpoints.
+
+## 🧠 ML Models
+
+| Model | MAE | RMSE | R² | Status |
+|-------|-----|------|-----|--------|
+| **Random Forest** | 0.066 min | 0.15 min | 0.998 | ✅ Production |
+| LSTM | 0.101 min | 0.204 min | 0.998 | Backup |
+| GNN | 0.110 min | 0.219 min | 0.997 | Research |
+
+> RF was selected for production due to superior MAE. All 3 models were trained on 10,000 realistic EMS trip samples with 19 engineered features.
 
 ## 📁 Project Structure
 
-````
+```
 navi-raksha/
-├── notebooks/                        # 🟢 Training notebooks (READY FOR USE)
-│   ├── 01_dataset_generation.ipynb   # Dataset creation (10K samples) ✅
-│   ├── 02_random_forest_detailed.ipynb # RF baseline (4.2 min MAE) ✅
-│   ├── 03_lstm_training.ipynb        # LSTM training pipeline 🟢
-│   └── 04_gnn_training.ipynb         # GNN training pipeline 🟢
-├── data/
-│   ├── raw/                    (OpenCity violations, OSM graph, hospitals)
-│   ├── processed/              (✅ train_real.csv, val_real.csv, test_real.csv)
-│   └── trained/                (✅ rf_baseline_real.pkl)
-├── models/
-│   ├── checkpoints/            (Training checkpoints)
-│   └── trained/                (Final weights: RF, LSTM, GNN)
 ├── modules/
-│   ├── ml/                     (ML models)
-│   ├── routing/                (A* router, dispatch classifier)
-│   └── frontend/               (Streamlit apps)
-├── tests/                      (Unit tests)
-├── ui/                         (Streamlit pages)
-├── docs/                       (Design docs, API specs)
-├── .gitignore                  (Updated: notebooks enabled)
-├── requirements.txt            (Dependencies)
-└── README.md                   (This file)
-
-
-## 🎯 Key Deliverables & Progress
-
-| Deliverable | Target | Status | Notes |
-|---|---|---|---|
-| **Dataset** | 10K OD pairs | ✅ Complete | train/val/test CSVs ready |
-| **RF Baseline** | 4.2 min MAE | ✅ Complete | Trained & evaluated |
-| **LSTM Model** | < 3.9 min MAE | 🟢 Ready | Notebook created, awaiting execution |
-| **GNN Model** | < 3.0 min MAE | 🟢 Ready | Notebook created, awaiting execution |
-| **A\* Router** | < 2 sec response | ⏳ In Progress | Turya's module |
-| **Dispatch Logic** | 95%+ accuracy | ⏳ In Progress | Turya's module |
-| **Frontend UI** | Live dashboard | ⏳ In Progress | Arisha's responsibility |
-| **Research Paper** | IEEE format | ⏳ In Progress | Arisha's responsibility |
-| **Production Ready** | May 1, 2026 | 🎯 Target | Full integration & deployment |
-
-## 🚀 Quick Start Guide
-
-### For Teammates (All members)
-
-```bash
-# 1. Clone repository
-git clone https://github.com/Sriyasnehasis/Navi-Raksha.git
-cd navi-raksha
-
-# 2. Checkout test branch (active development)
-git checkout test
-git pull origin test
-
-# 3. Create & activate virtual environment
-python -m venv navi_env
-.\navi_env\Scripts\activate  # Windows
-# or
-source navi_env/bin/activate  # Linux/Mac
-
-# 4. Install dependencies
-pip install -r requirements.txt
-
-# 5. Run a notebook
-jupyter notebook notebooks/02_random_forest_detailed.ipynb
+│   ├── backend/          # Flask API (app.py, models.py, services.py)
+│   ├── routing/          # A* router, dispatch classifier, hospital ranker
+│   └── ml/               # Model loading utilities
+├── ui/                   # Streamlit dashboard (3 pages)
+├── models/trained/       # RF, LSTM, GNN model files
+├── data/
+│   ├── processed/        # Train/Val/Test CSVs (8K/1K/1K)
+│   └── raw/              # OSM graph, hospitals CSV, key locations
+├── notebooks/            # 9 training notebooks
+├── tests/                # Comprehensive test suite (30+ tests)
+├── docs/                 # Team guides, API contracts, plans
+├── Dockerfile.backend    # Docker for API
+├── Dockerfile.frontend   # Docker for Streamlit
+└── docker-compose.yml    # Full stack deployment
 ```
 
-### For Running Training Notebooks
+## 👥 Team
 
-```bash
-# Dataset Generation (completed, for reference)
-jupyter notebook notebooks/01_dataset_generation.ipynb
+| Member | Role | Contribution |
+|--------|------|-------------|
+| **Sriya** | Lead + Integration | Dataset, Backend API, System Integration |
+| **Anjanaa** | ML Engineer | RF, LSTM, GNN model training & comparison |
+| **Turya** | Routing Dev | A* Router, Dispatch Classifier, Hospital Ranker |
+| **Arisha** | Frontend + Paper | Streamlit Dashboard, IEEE Paper |
 
-# RF Baseline Analysis (ready to run)
-jupyter notebook notebooks/02_random_forest_detailed.ipynb
+## 📈 Status (April 12, 2026)
 
-# LSTM Training (ready to run)
-jupyter notebook notebooks/03_lstm_training.ipynb
-
-# GNN Training (ready to run)
-jupyter notebook notebooks/04_gnn_training.ipynb
-```
-
-### For Team Lead (Sriya)
-
-```bash
-# Check test branch progress
-git checkout test
-git pull origin test
-
-# After testing, merge to main
-git checkout main
-git merge test
-git push origin main
-```
-
-### Git Workflow
-
-- **`main` branch**: Production code (merged only after testing)
-- **`test` branch**: Development & testing (where everyone commits)
-
----
-
-## 📊 Dataset Overview (Apr 7, 2026)
-
-**Location:** Navi Mumbai (5 zones: Vashi, Nerul, Kharghar, Belapur, Airoli)
-
-**Dataset Specs:**
-- **Samples:** 10,000 realistic EMS trips
-- **Train/Val/Test Split:** 8,000 / 1,000 / 1,000 (80/10/10)
-- **Features:** 19 features (distance, time, zone, weather, violations, etc.)
-- **Target:** ETA in minutes (min: 3, max: 15)
-
-**Speed Model Factors:**
-- ⏰ Time-based: Peak hours (20-25 km/h) vs off-peak (35-40 km/h)
-- 🚨 Violations-based: -30% impact (congestion proxy)
-- 📏 Distance: 1.0-1.15x multiplier
-- 🌧️ Weather: Rain -25%, Monsoon -35%
-
-**Files:**
-- `data/processed/train_real.csv` (8,000 rows)
-- `data/processed/val_real.csv` (1,000 rows)
-- `data/processed/test_real.csv` (1,000 rows)
-- `data/trained/rf_baseline_real.pkl` (trained model)
-
----
-
-## 🎓 Model Performance Targets
-
-| Model | Input | Target MAE | Status |
-|---|---|---|---|
-| **RF Baseline** | 19 features | 4.2 min | ✅ Achieved |
-| **LSTM** | Sequences + 19 features | < 3.9 min | 🟢 Ready |
-| **GNN** | OSM graph + 19 features | < 3.0 min | 🟢 Ready |`
-
-## 🇮🇳 India-Specific Features
-
-**Navi Mumbai Factors:**
-
-- **Monsoon Flooding** (June-Sept, Kharghar/Ulwe zones): 1.3× ETA penalty
-- **MIDC Industrial Traffic** (Thane-Belapur 8-10 AM & 5-7 PM): 1.2× penalty
-- **Bridge Bottlenecks** (Vashi, Airoli bridges): 1.5-2× penalty
-- **Festival Traffic** (Ganesh Chaturthi, Navratri): 1.4× city-wide penalty
-- **Slum Corridor Access** (narrow lanes, no direct routes): Bike ambulance dispatch
-- **Hospital Distribution** (5 major + 12 secondary): ETA-based recommender
-
-**Violation Hotspots (Real Data):**
-- Vashi: 48,637 violations/month (highest congestion indicator)
-- Nerul: 38,622 violations/month
-- Used as proxy for real-time traffic patterns
-
----
-
-## 📅 Project Timeline (Apr 7 - May 1)
-
-| Week | Phase | Deliverables | Owner |
-|---|---|---|---|
-| **Week 1 (Apr 7-13)** | Dataset & ML | ✅ Dataset complete, RF baseline, LSTM/GNN notebooks | Sriya + Anjanaa |
-| **Week 2 (Apr 14-20)** | Training | Trained LSTM & GNN models, evaluate performance | Anjanaa |
-| **Week 3 (Apr 21-27)** | Integration | Routing + dispatch + frontend ready, full system test | Turya + Arisha |
-| **Week 4 (Apr 28-May 1)** | Polish | Paper ready, presentation, production deployment | All |
-
----
-
-## 🔧 Technical Stack
-
-| Component | Technology | Version |
-|---|---|---|
-| **Data Pipeline** | Python, Pandas, NumPy | 3.9+ |
-| **ML Models** | TensorFlow, PyTorch, scikit-learn | Latest |
-| **GNN Library** | PyTorch Geometric | 2.3.0 |
-| **Routing** | NetworkX, OSM data | Latest |
-| **Frontend** | Streamlit, Folium | Latest |
-| **Database** | (TBD) | |
-| **Version Control** | Git + GitHub | |
-
----
-
-## 📞 Contact & Support
-
-- **Sriya (Lead):** Project management, data engineering, integration
-- **Anjanaa (ML):** Model training, evaluation, optimization
-- **Turya (Routing):** A* algorithm, dispatch logic, optimization
-- **Arisha (Frontend):** UI/UX, paper writing, presentation
-
----
+- ✅ Dataset: 10K EMS trips with 19 features
+- ✅ ML Models: 3 models trained (RF selected)
+- ✅ Backend API: 22 endpoints, SQLAlchemy, caching
+- ✅ Routing Engine: A*, dispatch classifier, hospital ranker
+- ✅ Frontend: Premium dark-themed Streamlit dashboard
+- ✅ Integration: Routing ↔ Backend connected
+- ✅ Test Suite: 30+ tests covering 4 scenarios
+- ✅ Docker: Deployment ready
+- 🔄 IEEE Paper: In progress
 
 ## 📄 License
 
-MIT License - See LICENSE file for details
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-**Last Updated:** April 7, 2026
-**Project Status:** 🟢 Active Development | **Timeline:** 24 days to launch
-````
+*Built with ❤️ by Team NaviRaksha — Amity University Mumbai*

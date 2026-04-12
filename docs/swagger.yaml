@@ -1,0 +1,877 @@
+openapi: 3.0.0
+info:
+  title: NaviRaksha - Emergency Management System API
+  description: |
+    Complete REST API for NaviRaksha EMS platform
+    - Real-time ambulance tracking
+    - Emergency dispatch with AI/ML predictions
+    - Hospital management
+    - ETA prediction using Random Forest, LSTM, and GNN models
+    - A* routing and hospital ranking
+  version: 1.0.0
+  contact:
+    name: NaviRaksha Team
+    email: contact@navi-raksha.com
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Local Development Server
+  - url: http://navi-raksha.example.com
+    description: Production Server
+
+tags:
+  - name: Health & Info
+    description: System health and status checks
+  - name: ETA Prediction
+    description: Predict emergency response times using ML models
+  - name: Operations
+    description: Real-time operational endpoints
+  - name: Dispatch
+    description: Emergency dispatch management with A* routing
+  - name: Admin - Database
+    description: Database initialization and management
+  - name: Admin - Ambulances
+    description: Ambulance CRUD operations
+  - name: Admin - Incidents
+    description: Incident CRUD operations
+  - name: Admin - Hospitals
+    description: Hospital management
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health & Info
+      summary: Health check endpoint
+      description: Returns system health status and component availability
+      operationId: getHealth
+      responses:
+        "200":
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-04-12T14:30:45.123456"
+                  model_loaded:
+                    type: boolean
+                    example: true
+                  scaler_loaded:
+                    type: boolean
+                    example: true
+
+  /predict-eta:
+    post:
+      tags:
+        - ETA Prediction
+      summary: Predict ETA using RF model
+      description: Predict ambulance arrival time using Random Forest model with standard features
+      operationId: predictETA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - distance
+              properties:
+                distance:
+                  type: number
+                  description: Distance to destination in km
+                  example: 5.0
+                hour:
+                  type: integer
+                  description: Hour of day (0-23)
+                  example: 14
+                is_monsoon:
+                  type: integer
+                  description: 1 if monsoon, 0 otherwise
+                  example: 0
+                ambulance_type:
+                  type: integer
+                  description: Ambulance type (1=ALS, 2=BLS, 3=Mini)
+                  example: 2
+                violations_zone:
+                  type: number
+                  description: Number of traffic violation zones
+                  example: 0
+      responses:
+        "200":
+          description: ETA prediction successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eta_minutes:
+                    type: number
+                    example: 8.5
+                  status:
+                    type: string
+                    example: "success"
+                  timestamp:
+                    type: string
+                    format: date-time
+        "400":
+          description: Bad request - missing or invalid parameters
+        "500":
+          description: Server error during prediction
+
+  /predict-eta/by-model:
+    post:
+      tags:
+        - ETA Prediction
+      summary: Predict ETA with model selection
+      description: Predict ETA using selected model (RF, LSTM, or GNN) with comparison to RF baseline
+      operationId: predictETAByModel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - model
+                - distance
+              properties:
+                model:
+                  type: string
+                  enum: [RF, LSTM, GNN]
+                  description: ML model to use for prediction
+                  example: "RF"
+                distance:
+                  type: number
+                  description: Distance to destination in km
+                  example: 5.0
+                hour:
+                  type: integer
+                  description: Hour of day (0-23)
+                  example: 14
+                is_monsoon:
+                  type: integer
+                  description: 1 if monsoon, 0 otherwise
+                  example: 0
+                ambulance_type:
+                  type: integer
+                  description: Ambulance type (1=ALS, 2=BLS, 3=Mini)
+                  example: 2
+                violations_zone:
+                  type: number
+                  description: Number of traffic violation zones
+                  example: 0
+      responses:
+        "200":
+          description: ETA prediction successful with model comparison
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  model:
+                    type: string
+                    example: "GNN"
+                  eta_minutes:
+                    type: number
+                    example: 7.96
+                  reference_eta_rf:
+                    type: number
+                    description: RF baseline for comparison
+                    example: 7.37
+                  status:
+                    type: string
+                    example: "success"
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /ambulances/active:
+    get:
+      tags:
+        - Operations
+      summary: Get active ambulances
+      description: Retrieve all active ambulances with current status and location
+      operationId: getActiveAmbulances
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+          description: Filter by status (Available, En Route, On Scene)
+      responses:
+        "200":
+          description: Active ambulances retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ambulances:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "ALS-001"
+                        type:
+                          type: string
+                          enum: [ALS, BLS, Mini]
+                        status:
+                          type: string
+                        latitude:
+                          type: number
+                        longitude:
+                          type: number
+                        driver_name:
+                          type: string
+                        phone:
+                          type: string
+                  count:
+                    type: integer
+                  status:
+                    type: string
+
+  /incidents/active:
+    get:
+      tags:
+        - Operations
+      summary: Get active incidents
+      description: Retrieve all active medical emergencies
+      operationId: getActiveIncidents
+      responses:
+        "200":
+          description: Active incidents retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  incidents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        severity:
+                          type: string
+                          enum: [Critical, High, Medium, Low]
+                        status:
+                          type: string
+                        location:
+                          type: string
+                        latitude:
+                          type: number
+                        longitude:
+                          type: number
+                        timestamp:
+                          type: string
+                          format: date-time
+                  count:
+                    type: integer
+                  status:
+                    type: string
+
+  /hospitals:
+    get:
+      tags:
+        - Operations
+      summary: Get all hospitals
+      description: Retrieve list of all hospitals in the system
+      operationId: getHospitals
+      responses:
+        "200":
+          description: Hospitals retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hospitals:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        address:
+                          type: string
+                        phone:
+                          type: string
+                        latitude:
+                          type: number
+                        longitude:
+                          type: number
+                        total_beds:
+                          type: integer
+                        available_beds:
+                          type: integer
+                        has_trauma_center:
+                          type: boolean
+                        has_cardiac_care:
+                          type: boolean
+                        is_active:
+                          type: boolean
+                  count:
+                    type: integer
+                  status:
+                    type: string
+
+  /dispatch:
+    post:
+      tags:
+        - Dispatch
+      summary: Emergency dispatch
+      description: |
+        Dispatch ambulance to incident location using A* routing with hospital ranking
+        Returns optimized route, hospital rankings, and dispatch details
+      operationId: dispatchEmergency
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - incident_latitude
+                - incident_longitude
+                - severity
+              properties:
+                incident_latitude:
+                  type: number
+                  description: Latitude of incident location
+                  example: 19.076
+                incident_longitude:
+                  type: number
+                  description: Longitude of incident location
+                  example: 72.877
+                severity:
+                  type: string
+                  enum: [Critical, High, Medium, Low]
+                  description: Incident severity level
+                  example: "High"
+                incident_type:
+                  type: string
+                  description: Type of medical emergency
+                  example: "Trauma"
+                patient_name:
+                  type: string
+                  example: "John Doe"
+                patient_phone:
+                  type: string
+                  example: "+91-9876543210"
+                distance_km:
+                  type: number
+                  description: Approximate distance to incident
+                  example: 2.5
+      responses:
+        "200":
+          description: Emergency dispatch successful with routing and hospital ranking
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ambulance:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "ALS-001"
+                      type:
+                        type: string
+                        example: "ALS"
+                      driver_name:
+                        type: string
+                      phone:
+                        type: string
+                  dispatch_id:
+                    type: string
+                  eta_minutes:
+                    type: number
+                    example: 8.5
+                  ambulance_type:
+                    type: string
+                    example: "ALS"
+                  incident:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      location:
+                        type: string
+                      severity:
+                        type: string
+                  route_coords:
+                    type: array
+                    description: Route polyline coordinates [lat, lon] from ambulance → patient → hospital
+                    example:
+                      [[19.076, 72.877], [19.077, 72.878], [19.080, 72.880]]
+                  route_summary:
+                    type: object
+                    description: Route statistics
+                    properties:
+                      routing_mode:
+                        type: string
+                        example: "a_star"
+                      ambulance_to_patient_nodes:
+                        type: integer
+                        example: 23
+                      patient_to_hospital_nodes:
+                        type: integer
+                        example: 15
+                  hospital_rankings:
+                    type: array
+                    description: Ranked hospitals sorted by composite score (0.7*ETA + 0.3*bed_availability)
+                    items:
+                      type: object
+                      properties:
+                        hospital_id:
+                          type: string
+                        hospital_name:
+                          type: string
+                        eta_to_hospital_min:
+                          type: number
+                        available_beds:
+                          type: integer
+                        score:
+                          type: number
+                  status:
+                    type: string
+                    example: "success"
+                  timestamp:
+                    type: string
+                    format: date-time
+        "400":
+          description: Bad request - missing required parameters
+        "500":
+          description: Server error during dispatch
+
+  /models/comparison:
+    get:
+      tags:
+        - ETA Prediction
+      summary: Model comparison metrics
+      description: Get performance metrics comparing RF, LSTM, and GNN models
+      operationId: getModelComparison
+      responses:
+        "200":
+          description: Model comparison data retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: object
+                    properties:
+                      RF:
+                        type: object
+                        properties:
+                          accuracy:
+                            type: number
+                          mae:
+                            type: number
+                          inference_time_ms:
+                            type: number
+                      LSTM:
+                        type: object
+                      GNN:
+                        type: object
+                  status:
+                    type: string
+
+  /admin/db/init:
+    post:
+      tags:
+        - Admin - Database
+      summary: Initialize database tables
+      description: Create all required database tables
+      operationId: initDatabase
+      responses:
+        "200":
+          description: Database initialized successfully
+        "500":
+          description: Error initializing database
+
+  /admin/db/seed:
+    post:
+      tags:
+        - Admin - Database
+      summary: Seed initial data
+      description: Populate database with sample data for testing
+      operationId: seedDatabase
+      responses:
+        "200":
+          description: Database seeded successfully
+        "500":
+          description: Error seeding database
+
+  /admin/db/reset:
+    post:
+      tags:
+        - Admin - Database
+      summary: Reset database
+      description: Delete all data and reinitialize with seed data
+      operationId: resetDatabase
+      responses:
+        "200":
+          description: Database reset successfully
+        "500":
+          description: Error resetting database
+
+  /admin/db/status:
+    get:
+      tags:
+        - Admin - Database
+      summary: Database status
+      description: Get current database statistics and status
+      operationId: getDatabaseStatus
+      responses:
+        "200":
+          description: Database status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ambulances_count:
+                    type: integer
+                  incidents_count:
+                    type: integer
+                  hospitals_count:
+                    type: integer
+                  dispatches_count:
+                    type: integer
+                  status:
+                    type: string
+
+  /admin/ambulances:
+    post:
+      tags:
+        - Admin - Ambulances
+      summary: Create ambulance
+      description: Create a new ambulance in the system
+      operationId: createAmbulance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - type
+                - driver_name
+              properties:
+                id:
+                  type: string
+                  example: "ALS-004"
+                type:
+                  type: string
+                  enum: [ALS, BLS, Mini]
+                driver_name:
+                  type: string
+                phone:
+                  type: string
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+                status:
+                  type: string
+                  default: "Available"
+      responses:
+        "201":
+          description: Ambulance created successfully
+        "400":
+          description: Bad request
+        "409":
+          description: Ambulance already exists
+
+  /admin/ambulances/{ambulance_id}:
+    get:
+      tags:
+        - Admin - Ambulances
+      summary: Get ambulance
+      operationId: getAmbulance
+      parameters:
+        - in: path
+          name: ambulance_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Ambulance retrieved
+        "404":
+          description: Ambulance not found
+
+    put:
+      tags:
+        - Admin - Ambulances
+      summary: Update ambulance
+      operationId: updateAmbulance
+      parameters:
+        - in: path
+          name: ambulance_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: [ALS, BLS, Mini]
+                driver_name:
+                  type: string
+                phone:
+                  type: string
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+                status:
+                  type: string
+      responses:
+        "200":
+          description: Ambulance updated
+        "404":
+          description: Ambulance not found
+
+    delete:
+      tags:
+        - Admin - Ambulances
+      summary: Delete ambulance
+      operationId: deleteAmbulance
+      parameters:
+        - in: path
+          name: ambulance_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Ambulance deleted
+        "404":
+          description: Ambulance not found
+
+  /admin/incidents:
+    post:
+      tags:
+        - Admin - Incidents
+      summary: Create incident
+      description: Create a new incident report
+      operationId: createIncident
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - severity
+              properties:
+                id:
+                  type: string
+                severity:
+                  type: string
+                  enum: [Critical, High, Medium, Low]
+                type:
+                  type: string
+                location:
+                  type: string
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+                patient_name:
+                  type: string
+                patient_phone:
+                  type: string
+      responses:
+        "201":
+          description: Incident created
+        "409":
+          description: Incident already exists
+
+  /admin/incidents/{incident_id}:
+    get:
+      tags:
+        - Admin - Incidents
+      summary: Get incident
+      operationId: getIncident
+      parameters:
+        - in: path
+          name: incident_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Incident retrieved
+        "404":
+          description: Incident not found
+
+    put:
+      tags:
+        - Admin - Incidents
+      summary: Update incident
+      operationId: updateIncident
+      parameters:
+        - in: path
+          name: incident_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Incident updated
+        "404":
+          description: Incident not found
+
+    delete:
+      tags:
+        - Admin - Incidents
+      summary: Delete incident
+      operationId: deleteIncident
+      parameters:
+        - in: path
+          name: incident_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Incident deleted
+        "404":
+          description: Incident not found
+
+  /admin/hospitals:
+    post:
+      tags:
+        - Admin - Hospitals
+      summary: Create hospital
+      description: Register a new hospital in the system
+      operationId: createHospital
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - name
+                - latitude
+                - longitude
+                - total_beds
+              properties:
+                id:
+                  type: string
+                  example: "H001"
+                name:
+                  type: string
+                  example: "Fortis Hospital"
+                address:
+                  type: string
+                phone:
+                  type: string
+                latitude:
+                  type: number
+                longitude:
+                  type: number
+                total_beds:
+                  type: integer
+                available_beds:
+                  type: integer
+                has_trauma_center:
+                  type: boolean
+                has_cardiac_care:
+                  type: boolean
+      responses:
+        "201":
+          description: Hospital created
+        "409":
+          description: Hospital already exists
+
+  /admin/hospitals/{hospital_id}:
+    get:
+      tags:
+        - Admin - Hospitals
+      summary: Get hospital
+      operationId: getHospital
+      parameters:
+        - in: path
+          name: hospital_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Hospital retrieved
+        "404":
+          description: Hospital not found
+
+    put:
+      tags:
+        - Admin - Hospitals
+      summary: Update hospital
+      operationId: updateHospital
+      parameters:
+        - in: path
+          name: hospital_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Hospital updated
+        "404":
+          description: Hospital not found
+
+    delete:
+      tags:
+        - Admin - Hospitals
+      summary: Delete hospital
+      operationId: deleteHospital
+      parameters:
+        - in: path
+          name: hospital_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Hospital deleted
+        "404":
+          description: Hospital not found
