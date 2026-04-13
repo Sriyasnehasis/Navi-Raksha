@@ -21,6 +21,7 @@ sys.path.insert(0, BACKEND_DIR)
 sys.path.insert(0, PROJECT_ROOT_DIR)
 
 # Try loading A* Route Optimizer globally
+ROAD_GRAPH = None
 try:
     import pickle
     graph_path = os.path.join(PROJECT_ROOT_DIR, 'data', 'raw', 'navi_mumbai_road_graph.pkl')
@@ -29,7 +30,7 @@ try:
     from modules.routing.route_optimizer import get_nearest_node, add_traffic_weights_to_graph, astar
     logging.getLogger(__name__).info("✅ Routing: A* Road Graph loaded")
 except Exception as e:
-    logging.getLogger(__name__).warning(f"⚠️ A* Graph not loaded: {e}")
+    logging.getLogger(__name__).warning(f"⚠️ A* Graph not loaded: {e}. App will start without routing.")
     ROAD_GRAPH = None
 
 # Import routing module (Turya's engine)
@@ -39,12 +40,20 @@ try:
     DISPATCH_CLASSIFIER = DispatchClassifier()
     logging.getLogger(__name__).info("✅ Routing: DispatchClassifier loaded")
 except Exception as e:
-    logging.getLogger(__name__).warning(f"⚠️ DispatchClassifier not loaded: {e}")
+    logging.getLogger(__name__).warning(f"⚠️ DispatchClassifier not loaded: {e}. Dispatch will use fallback.")
 
-# Import database and services
-from models import db, Ambulance, Incident, Hospital, Dispatch, IncidentStatus
-from database import init_db, seed_db, reset_db
-from services import AmbulanceService, IncidentService, HospitalService, DispatchService
+# Import database and services (with graceful degradation)
+try:
+    from models import db, Ambulance, Incident, Hospital, Dispatch, IncidentStatus
+    from database import init_db, seed_db, reset_db
+    from services import AmbulanceService, IncidentService, HospitalService, DispatchService
+    DB_AVAILABLE = True
+except Exception as e:
+    logging.getLogger(__name__).error(f"❌ Database import failed: {e}. Will attempt to initialize on first request.")
+    DB_AVAILABLE = False
+    db = None
+    Ambulance = Incident = Hospital = Dispatch = IncidentStatus = None
+    AmbulanceService = IncidentService = HospitalService = DispatchService = None
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -80,10 +89,13 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'echo': False
 }
 
-# Initialize database with app
-db.init_app(app)
+# Initialize database with app (if available)
+if DB_AVAILABLE and db is not None:
+    db.init_app(app)
+    logger.info(f"Database initialized at: {DATABASE_PATH}")
+else:
+    logger.warning("Database not available - using mock/degraded mode")
 
-logger.info(f"Database will be stored at: {DATABASE_PATH}")
 logger.info(f"SQLAlchemy URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
 # ============================================================================
