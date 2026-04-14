@@ -192,10 +192,10 @@ ACTIVE_INCIDENTS = [
 ]
 
 HOSPITALS = [
-    {'id': 'H001', 'name': 'Fortis Hospital', 'lat': 19.0760, 'lon': 72.8777, 'beds': 150, 'available_beds': 45},
-    {'id': 'H002', 'name': 'Apollo Clinic', 'lat': 19.0860, 'lon': 72.8877, 'beds': 200, 'available_beds': 78},
-    {'id': 'H003', 'name': 'Sai Nursing Home', 'lat': 19.0900, 'lon': 72.8950, 'beds': 80, 'available_beds': 22},
-    {'id': 'H004', 'name': 'Nerul Hospital', 'lat': 19.0820, 'lon': 72.8650, 'beds': 120, 'available_beds': 55},
+    {'id': 'H001', 'name': 'Fortis Hospital', 'latitude': 19.0760, 'longitude': 72.8777, 'total_beds': 150, 'available_beds': 45},
+    {'id': 'H002', 'name': 'Apollo Clinic', 'latitude': 19.0860, 'longitude': 72.8877, 'total_beds': 200, 'available_beds': 78},
+    {'id': 'H003', 'name': 'Sai Nursing Home', 'latitude': 19.0900, 'longitude': 72.8950, 'total_beds': 80, 'available_beds': 22},
+    {'id': 'H004', 'name': 'Nerul Hospital', 'latitude': 19.0820, 'longitude': 72.8650, 'total_beds': 120, 'available_beds': 55},
 ]
 
 # ============================================================================
@@ -206,12 +206,34 @@ def prepare_features(data):
     """
     Prepare feature vector for RF model prediction
     Expected features: distance, hour, is_monsoon, ambulance_type, violations_zone
+    Also handles alternate field names from test payloads:
+    - distance_km -> distance
+    - traffic_level -> is_monsoon (low=0, moderate=0.5, high=1)
     """
     try:
-        distance = float(data.get('distance', 5.0))
+        # Handle distance field (distance or distance_km)
+        distance = float(data.get('distance', data.get('distance_km', 5.0)))
+        
+        # Handle hour (explicit or current time)
         hour = int(data.get('hour', datetime.now().hour))
-        is_monsoon = int(data.get('is_monsoon', 0))
-        ambulance_type = int(data.get('ambulance_type', 2))
+        
+        # Handle is_monsoon (boolean or traffic_level string)
+        if 'is_monsoon' in data:
+            is_monsoon = int(data.get('is_monsoon', 0))
+        elif 'traffic_level' in data:
+            traffic_map = {'low': 0, 'moderate': 1, 'high': 2}
+            is_monsoon = traffic_map.get(data.get('traffic_level', 'moderate').lower(), 1)
+        else:
+            is_monsoon = 0
+        
+        # Handle ambulance_type (can be string name or numeric)
+        amb_type_val = data.get('ambulance_type', 2)
+        if isinstance(amb_type_val, str):
+            type_map = {'bike': 0, 'mini': 1, 'bls': 2, 'als': 3}
+            ambulance_type = type_map.get(amb_type_val.lower(), 2)
+        else:
+            ambulance_type = int(amb_type_val)
+        
         violations_zone = float(data.get('violations_zone', 0))
         
         features = np.array([[distance, hour, is_monsoon, ambulance_type, violations_zone]])
