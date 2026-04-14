@@ -74,35 +74,7 @@ def run():
             'Patient': ['Ramesh S.', 'Priya V.', 'Ajay K.'],
             'Time': ['12:34 PM', '12:45 PM', '12:52 PM'],
             'Response Time (min)': [8, None, 12]  # Add response times for calculation
-        })
-
-    # Add hospital data for availability
-    if 'hospitals' not in st.session_state:
-        st.session_state.hospitals = pd.DataFrame({
-            'Name': ['Fortis Hospital', 'Apollo Clinic', 'Sai Nursing Home'],
-            'Available Beds': [45, 78, 22],
-            'Total Beds': [150, 200, 80]
-        })
-
-    # Initialize replay state
-    if 'replay' not in st.session_state:
-        st.session_state.replay = {
-            'simulation_running': False,  # Tracks if simulation is running
-            'current_step': 0,  # Current time step in simulation
-            'max_steps': 10,
-            'initial_fleet': st.session_state.fleet.copy(),
-            'initial_incidents': st.session_state.incidents.copy(),
-            'history': [],  # Store states for replay
-            'timeline': [  # Mock timeline data with time-based status changes
-                {'time': 1, 'ambulance_id': 'ALS-001', 'new_status': 'Dispatched', 'event': 'ALS-001 dispatched to incident'},
-                {'time': 2, 'ambulance_id': 'ALS-001', 'new_status': 'En Route', 'event': 'ALS-001 en route'},
-                {'time': 4, 'ambulance_id': 'ALS-001', 'new_status': 'On Scene', 'event': 'ALS-001 arrived on scene'},
-                {'time': 6, 'ambulance_id': 'BLS-002', 'new_status': 'Dispatched', 'event': 'BLS-002 dispatched'},
-                {'time': 7, 'ambulance_id': 'BLS-002', 'new_status': 'En Route', 'event': 'BLS-002 en route'},
-                {'time': 9, 'ambulance_id': 'ALS-001', 'new_status': 'Completed', 'event': 'ALS-001 completed mission'},
-                {'time': 10, 'ambulance_id': 'BLS-002', 'new_status': 'On Scene', 'event': 'BLS-002 arrived on scene'},
-            ]
-        }
+        }), False
 
     # Helper functions for KPI calculations
     def calculate_avg_response_time(incidents_df):
@@ -131,15 +103,12 @@ def run():
     incidents_df, incidents_live = fetch_incidents()
     hospitals, _ = fetch_hospitals()
 
-    # ------------------------------------------------------------------ #
-    # Initialize session state for simulation and hospitals
-    # ------------------------------------------------------------------ #
-    # Add fleet and incidents to session state if not present
+    # Add fleet and incidents to session state
     if 'fleet' not in st.session_state:
-        st.session_state.fleet = fleet_df.copy()
+        st.session_state.fleet = fleet_df.copy() if not fleet_df.empty else pd.DataFrame()
     if 'incidents' not in st.session_state:
-        st.session_state.incidents = incidents_df.copy()
-
+        st.session_state.incidents = incidents_df.copy() if not incidents_df.empty else pd.DataFrame()
+    
     # Add hospital data for availability
     if 'hospitals' not in st.session_state:
         st.session_state.hospitals = pd.DataFrame({
@@ -148,14 +117,14 @@ def run():
             'Total Beds': [150, 200, 80]
         })
 
-    # Initialize replay state
+    # Initialize replay state with proper data
     if 'replay' not in st.session_state:
         st.session_state.replay = {
             'simulation_running': False,  # Tracks if simulation is running
             'current_step': 0,  # Current time step in simulation
             'max_steps': 10,
-            'initial_fleet': st.session_state.fleet.copy(),
-            'initial_incidents': st.session_state.incidents.copy(),
+            'initial_fleet': fleet_df.copy(),
+            'initial_incidents': incidents_df.copy(),
             'history': [],  # Store states for replay
             'timeline': [  # Mock timeline data with time-based status changes
                 {'time': 1, 'ambulance_id': 'ALS-001', 'new_status': 'Dispatched', 'event': 'ALS-001 dispatched to incident'},
@@ -167,6 +136,8 @@ def run():
                 {'time': 10, 'ambulance_id': 'BLS-002', 'new_status': 'On Scene', 'event': 'BLS-002 arrived on scene'},
             ]
         }
+
+
 
     # ------------------------------------------------------------------ #
     # Header
