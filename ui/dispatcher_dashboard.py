@@ -47,48 +47,112 @@ def run():
             'Type': ['Cardiac', 'Trauma', 'Respiratory'],
             'Severity': ['Critical', 'High', 'Medium'],
             'Status': ['Ambulance Assigned', 'Waiting', 'En Route'],
-            'Time': ['12:34 PM', '12:45 PM', '12:52 PM']
+            'Time': ['12:34 PM', '12:45 PM', '12:52 PM'],
+            'Response Time (min)': [8, None, 12]  # Add response times for calculation
         })
+
+    # Add hospital data for availability
+    if 'hospitals' not in st.session_state:
+        st.session_state.hospitals = pd.DataFrame({
+            'Name': ['Fortis Hospital', 'Apollo Clinic', 'Sai Nursing Home'],
+            'Available Beds': [45, 78, 22],
+            'Total Beds': [150, 200, 80]
+        })
+
+    # Initialize replay state
+    if 'replay' not in st.session_state:
+        st.session_state.replay = {
+            'simulation_running': False,  # Tracks if simulation is running
+            'current_step': 0,  # Current time step in simulation
+            'max_steps': 10,
+            'initial_fleet': st.session_state.fleet.copy(),
+            'initial_incidents': st.session_state.incidents.copy(),
+            'history': [],  # Store states for replay
+            'timeline': [  # Mock timeline data with time-based status changes
+                {'time': 1, 'ambulance_id': 'ALS-001', 'new_status': 'Dispatched', 'event': 'ALS-001 dispatched to incident'},
+                {'time': 2, 'ambulance_id': 'ALS-001', 'new_status': 'En Route', 'event': 'ALS-001 en route'},
+                {'time': 4, 'ambulance_id': 'ALS-001', 'new_status': 'On Scene', 'event': 'ALS-001 arrived on scene'},
+                {'time': 6, 'ambulance_id': 'BLS-002', 'new_status': 'Dispatched', 'event': 'BLS-002 dispatched'},
+                {'time': 7, 'ambulance_id': 'BLS-002', 'new_status': 'En Route', 'event': 'BLS-002 en route'},
+                {'time': 9, 'ambulance_id': 'ALS-001', 'new_status': 'Completed', 'event': 'ALS-001 completed mission'},
+                {'time': 10, 'ambulance_id': 'BLS-002', 'new_status': 'On Scene', 'event': 'BLS-002 arrived on scene'},
+            ]
+        }
+
+    # Helper functions for KPI calculations
+    def calculate_avg_response_time(incidents_df):
+        response_times = incidents_df['Response Time (min)'].dropna()
+        return response_times.mean() if not response_times.empty else 0
+
+    def calculate_active_ambulances_ratio(fleet_df, incidents_df):
+        active_ambulances = len(fleet_df[fleet_df['Status'].isin(['En Route', 'Incident Scene'])])
+        total_incidents = len(incidents_df)
+        return active_ambulances / total_incidents if total_incidents > 0 else 0
+
+    def calculate_hospital_availability(hospitals_df):
+        total_available = hospitals_df['Available Beds'].sum()
+        total_beds = hospitals_df['Total Beds'].sum()
+        return total_available / total_beds if total_beds > 0 else 0
 
     # Header
     st.markdown('<h1 class="main-header">🚑 NaviRaksha Dispatcher Control Room</h1>', unsafe_allow_html=True)
     st.markdown('Fleet Management & Incident Coordination', unsafe_allow_html=True)
 
+    # Calculate KPIs dynamically
+    avg_response = calculate_avg_response_time(st.session_state.incidents)
+    active_ratio = calculate_active_ambulances_ratio(st.session_state.fleet, st.session_state.incidents)
+    hospital_avail = calculate_hospital_availability(st.session_state.hospitals)
+    pending_calls = len(st.session_state.incidents[st.session_state.incidents['Status'] == 'Waiting'])
+
     # KPIs at top
-    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+    kpi1, kpi2, kpi3, kpi4, kpi5, kpi6 = st.columns(6)
     with kpi1:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-highlight">
             <h3>Active Units</h3>
-            <h2>5</h2>
+            <h2>{len(st.session_state.fleet)}</h2>
         </div>
         """, unsafe_allow_html=True)
     with kpi2:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-highlight">
             <h3>Avg Response</h3>
-            <h2>8.2 min</h2>
+            <h2>{avg_response:.1f} min</h2>
         </div>
         """, unsafe_allow_html=True)
     with kpi3:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-highlight">
             <h3>Today's Incidents</h3>
-            <h2>12</h2>
+            <h2>{len(st.session_state.incidents)}</h2>
         </div>
         """, unsafe_allow_html=True)
     with kpi4:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-highlight">
             <h3>Pending Calls</h3>
-            <h2>2</h2>
+            <h2>{pending_calls}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    with kpi5:
+        st.markdown(f"""
+        <div class="metric-highlight">
+            <h3>Active Ambulances Ratio</h3>
+            <h2>{active_ratio:.2f}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+    with kpi6:
+        st.markdown(f"""
+        <div class="metric-highlight">
+            <h3>Hospital Availability</h3>
+            <h2>{hospital_avail:.1%}</h2>
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown("---")
 
     # Main tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["🚗 Fleet Status", "🚨 Incidents Queue", "📊 Analytics", "⚙️ Settings"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🚗 Fleet Status", "🚨 Incidents Queue", "📊 Analytics", "⚙️ Settings", "🎬 Simulation Replay"])
 
     with tab1:
         st.markdown("### Fleet Overview")
@@ -165,6 +229,34 @@ def run():
         })
         st.line_chart(chart_data.set_index('Time'))
 
+        # Before vs After Comparison
+        st.markdown("### Before vs After Comparison")
+        if 'comparison' not in st.session_state:
+            st.session_state.comparison = {
+                'initial_avg_response': calculate_avg_response_time(st.session_state.replay['initial_incidents']),
+                'final_avg_response': avg_response,
+                'initial_active_ratio': calculate_active_ambulances_ratio(st.session_state.replay['initial_fleet'], st.session_state.replay['initial_incidents']),
+                'final_active_ratio': active_ratio
+            }
+        
+        comp_col1, comp_col2 = st.columns(2)
+        with comp_col1:
+            st.markdown("**Initial State**")
+            st.metric("Avg Response Time", f"{st.session_state.comparison['initial_avg_response']:.1f} min")
+            st.metric("Active Ambulances Ratio", f"{st.session_state.comparison['initial_active_ratio']:.2f}")
+        with comp_col2:
+            st.markdown("**Final State**")
+            st.metric("Avg Response Time", f"{st.session_state.comparison['final_avg_response']:.1f} min")
+            st.metric("Active Ambulances Ratio", f"{st.session_state.comparison['final_active_ratio']:.2f}")
+        
+        # Simple chart for comparison
+        comparison_df = pd.DataFrame({
+            'Metric': ['Avg Response Time', 'Active Ambulances Ratio'],
+            'Initial': [st.session_state.comparison['initial_avg_response'], st.session_state.comparison['initial_active_ratio']],
+            'Final': [st.session_state.comparison['final_avg_response'], st.session_state.comparison['final_active_ratio']]
+        })
+        st.bar_chart(comparison_df.set_index('Metric'))
+
     with tab4:
         st.markdown("### System Settings")
         
@@ -178,6 +270,107 @@ def run():
             refresh_rate = st.slider("Refresh Rate (seconds)", 5, 60, 15)
             max_incidents = st.slider("Max Display Incidents", 5, 20, 10)
             st.info(f"Settings saved! Refresh rate: {refresh_rate}s")
+
+    with tab5:
+        st.markdown("### Simulation Replay")
+        
+        # Controls
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("▶️ Play"):
+                st.session_state.replay['simulation_running'] = True  # Start simulation loop
+                # Capture before metrics only once
+                if 'before_metrics' not in st.session_state.replay:
+                    st.session_state.replay['before_metrics'] = {
+                        'avg_response_time': calculate_avg_response_time(st.session_state.incidents),
+                        'active_units_count': len(st.session_state.fleet),
+                        'incident_count': len(st.session_state.incidents)
+                    }
+        with col2:
+            if st.button("⏸️ Pause"):
+                st.session_state.replay['simulation_running'] = False  # Pause without resetting step
+        with col3:
+            if st.button("🔄 Reset"):
+                st.session_state.replay['simulation_running'] = False  # Stop simulation
+                st.session_state.replay['current_step'] = 0  # Reset step to 0
+                st.session_state.fleet = st.session_state.replay['initial_fleet'].copy()  # Reset fleet state
+                st.session_state.incidents = st.session_state.replay['initial_incidents'].copy()  # Reset incidents state
+                # Clear comparison metrics
+                if 'before_metrics' in st.session_state.replay:
+                    del st.session_state.replay['before_metrics']
+                if 'after_metrics' in st.session_state.replay:
+                    del st.session_state.replay['after_metrics']
+                st.rerun()
+        
+        # Display current simulation time
+        st.markdown(f"**Current Simulation Time:** {st.session_state.replay['current_step']} seconds")
+        
+        # Progress bar
+        st.progress(st.session_state.replay['current_step'] / st.session_state.replay['max_steps'])
+        
+        # Display current events based on timeline
+        current_events = [e for e in st.session_state.replay['timeline'] if e['time'] <= st.session_state.replay['current_step']]
+        if current_events:
+            st.markdown("#### Recent Events")
+            for event in current_events[-3:]:  # Show last 3 events
+                st.write(f"⏰ {event['time']}s: {event['event']}")
+        
+        # Replay engine: Time-based simulation loop
+        if st.session_state.replay['simulation_running'] and st.session_state.replay['current_step'] < st.session_state.replay['max_steps']:
+            import time
+            time.sleep(1)  # Wait 1 second to simulate real-time progression
+            st.session_state.replay['current_step'] += 1  # Increment current step
+            
+            # Update ambulance statuses based on timeline
+            for event in st.session_state.replay['timeline']:
+                if event['time'] == st.session_state.replay['current_step']:
+                    # Find the ambulance and update its status
+                    mask = st.session_state.fleet['ID'] == event['ambulance_id']
+                    if mask.any():
+                        st.session_state.fleet.loc[mask, 'Status'] = event['new_status']
+                        st.success(f"Updated {event['ambulance_id']} to {event['new_status']}")
+            
+            st.rerun()  # Refresh UI to show updates
+        
+        # Capture after metrics when simulation completes
+        if st.session_state.replay['current_step'] == st.session_state.replay['max_steps'] and 'after_metrics' not in st.session_state.replay:
+            st.session_state.replay['after_metrics'] = {
+                'avg_response_time': calculate_avg_response_time(st.session_state.incidents),
+                'active_units_count': len(st.session_state.fleet),
+                'incident_count': len(st.session_state.incidents)
+            }
+        
+        # Display current ambulance status
+        st.markdown("#### Current Ambulance Status")
+        st.dataframe(st.session_state.fleet[['ID', 'Status', 'Type']], width='stretch', hide_index=True)
+        
+        # Update existing dashboard data dynamically (incidents can be updated similarly if needed)
+        st.markdown("#### Current Incidents")
+        st.dataframe(st.session_state.incidents[['ID', 'Status', 'Severity']], width='stretch', hide_index=True)
+        
+        # Comparison Results
+        if 'after_metrics' in st.session_state.replay:
+            st.markdown("### Comparison Results")
+            before = st.session_state.replay['before_metrics']
+            after = st.session_state.replay['after_metrics']
+            
+            # Display as metric cards
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Avg Response Time", f"{after['avg_response_time']:.1f} min", f"{after['avg_response_time'] - before['avg_response_time']:.1f}")
+            with col2:
+                st.metric("Active Units", after['active_units_count'], after['active_units_count'] - before['active_units_count'])
+            with col3:
+                st.metric("Incident Count", after['incident_count'], after['incident_count'] - before['incident_count'])
+            
+            # Also show as table
+            comparison_df = pd.DataFrame({
+                'Metric': ['Avg Response Time (min)', 'Active Units', 'Incident Count'],
+                'Before': [f"{before['avg_response_time']:.1f}", before['active_units_count'], before['incident_count']],
+                'After': [f"{after['avg_response_time']:.1f}", after['active_units_count'], after['incident_count']],
+                'Change': [f"{after['avg_response_time'] - before['avg_response_time']:.1f}", after['active_units_count'] - before['active_units_count'], after['incident_count'] - before['incident_count']]
+            })
+            st.table(comparison_df)
 
     st.markdown("---")
     st.caption("Last updated: " + datetime.now().strftime("%H:%M:%S"))
