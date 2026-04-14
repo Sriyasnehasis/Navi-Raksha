@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: Navi-Raksha-backend
+    runtime: python
+    rootDir: modules/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT "app:app"
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHONPATH
+        value: /opt/render/project/src
