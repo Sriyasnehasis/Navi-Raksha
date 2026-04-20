@@ -1,4 +1,4 @@
-# 🚑 NaviRaksha — GNN-Based Emergency Medical Response System
+# 🚑 NaviRaksha — RF-Based Emergency Medical Response System
 
 > **Intelligent Ambulance Dispatch & ETA Prediction for Navi Mumbai**
 > 
@@ -132,31 +132,8 @@ navi-raksha/
 └── docker-compose.yml    # Full stack deployment
 ```
 
-## 👥 Team
 
-| Member | Role | Contribution |
-|--------|------|-------------|
-| **Sriya** | Lead + Integration | Dataset, Backend API, System Integration |
-| **Anjanaa** | ML Engineer | RF, LSTM, GNN model training & comparison |
-| **Turya** | Routing Dev | A* Router, Dispatch Classifier, Hospital Ranker |
-| **Arisha** | Frontend + Paper | Streamlit Dashboard, IEEE Paper |
 
-## 📈 Status (April 12, 2026)
 
-- ✅ Dataset: 10K EMS trips with 19 features
-- ✅ ML Models: 3 models trained (RF selected)
-- ✅ Backend API: 22 endpoints, SQLAlchemy, caching
-- ✅ Routing Engine: A*, dispatch classifier, hospital ranker
-- ✅ Frontend: Premium dark-themed Streamlit dashboard
-- ✅ Integration: Routing ↔ Backend connected
-- ✅ Test Suite: 30+ tests covering 4 scenarios
-- ✅ Docker: Deployment ready
-- 🔄 IEEE Paper: In progress
 
-## 📄 License
 
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-*Built with ❤️ by Team NaviRaksha — Amity University Mumbai*
