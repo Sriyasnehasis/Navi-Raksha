@@ -78,6 +78,10 @@ def run():
 
     # Helper functions for KPI calculations
     def calculate_avg_response_time(incidents_df):
+        if not isinstance(incidents_df, pd.DataFrame) or incidents_df.empty:
+            return 0
+        if 'Response Time (min)' not in incidents_df.columns:
+            return 0
         response_times = incidents_df['Response Time (min)'].dropna()
         return response_times.mean() if not response_times.empty else 0
 
