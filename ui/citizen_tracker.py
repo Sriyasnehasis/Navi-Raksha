@@ -77,13 +77,17 @@ def run():
     def calc_dist(lat1, lon1, lat2, lon2):
         return np.sqrt((lat2 - lat1)**2 + (lon2 - lon1)**2) * 111
 
-    for amb in ambulances:
-        amb['distance_km'] = calc_dist(user_lat, user_lon, amb['latitude'], amb['longitude'])
-    for hosp in hospitals:
-        hosp['distance_km'] = calc_dist(user_lat, user_lon, hosp['latitude'], hosp['longitude'])
+    # Filter out non-dict ambulances and calculate distances
+    valid_ambulances = [a for a in ambulances if isinstance(a, dict)]
+    for amb in valid_ambulances:
+        amb['distance_km'] = calc_dist(user_lat, user_lon, amb.get('latitude', user_lat), amb.get('longitude', user_lon))
+    
+    valid_hospitals = [h for h in hospitals if isinstance(h, dict)]
+    for hosp in valid_hospitals:
+        hosp['distance_km'] = calc_dist(user_lat, user_lon, hosp.get('latitude', user_lat), hosp.get('longitude', user_lon))
 
-    ambulances_sorted = sorted(ambulances, key=lambda x: x['distance_km'])
-    hospitals_sorted = sorted(hospitals, key=lambda x: x['distance_km'])
+    ambulances_sorted = sorted(valid_ambulances, key=lambda x: x.get('distance_km', 999))
+    hospitals_sorted = sorted(valid_hospitals, key=lambda x: x.get('distance_km', 999))
     nearest_amb = ambulances_sorted[0] if ambulances_sorted else None
     nearest_hosp = hospitals_sorted[0] if hospitals_sorted else None
 
@@ -219,15 +223,15 @@ def run():
 
     # KPI Row
     k1, k2, k3, k4 = st.columns(4)
-    avail_count = sum(1 for a in ambulances if 'available' in a.get('status', '').lower())
+    avail_count = sum(1 for a in valid_ambulances if isinstance(a, dict) and 'available' in a.get('status', '').lower())
     with k1:
-        st.markdown(f'<div class="kpi-card"><h4>AMBULANCES</h4><h2>{len(ambulances)}</h2></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><h4>AMBULANCES</h4><h2>{len(valid_ambulances)}</h2></div>', unsafe_allow_html=True)
     with k2:
         st.markdown(f'<div class="kpi-card kpi-green"><h4>AVAILABLE</h4><h2>{avail_count}</h2></div>', unsafe_allow_html=True)
     with k3:
         st.markdown(f'<div class="kpi-card kpi-red"><h4>INCIDENTS</h4><h2>{len(incidents)}</h2></div>', unsafe_allow_html=True)
     with k4:
-        st.markdown(f'<div class="kpi-card kpi-orange"><h4>HOSPITALS</h4><h2>{len(hospitals)}</h2></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card kpi-orange"><h4>HOSPITALS</h4><h2>{len(valid_hospitals)}</h2></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -260,37 +264,47 @@ def run():
 
         # Ambulances
         amb_colors = {'ALS': 'red', 'BLS': 'orange', 'BIKE': 'green', 'MINI': 'green'}
-        for amb in ambulances:
+        for amb in valid_ambulances:
             color = amb_colors.get(amb.get('type', 'BLS'), 'blue')
             status = amb.get('status', 'unknown').replace('_', ' ').title()
             folium.Marker(
-                [amb['latitude'], amb['longitude']],
-                popup=f"<b>🚑 {amb['id']}</b><br>Type: {amb.get('type','?')}<br>Status: {status}<br>Driver: {amb.get('driver_name','N/A')}",
+                [amb.get('latitude', user_lat), amb.get('longitude', user_lon)],
+                popup=f"<b>🚑 {amb.get('id', '?')}</b><br>Type: {amb.get('type','?')}<br>Status: {status}<br>Driver: {amb.get('driver_name','N/A')}",
                 icon=folium.Icon(color=color, icon='ambulance', prefix='fa', icon_color='white'),
-                tooltip=f"{amb.get('type','?')} — {amb['id']}"
+                tooltip=f"{amb.get('type','?')} — {amb.get('id', '?')}"
             ).add_to(m)
 
         # Incidents
         sev_colors = {'critical': 'red', 'severe': 'orange', 'moderate': 'yellow', 'minor': 'green'}
         sev_radius = {'critical': 14, 'severe': 11, 'moderate': 8, 'minor': 6}
         for inc in incidents:
+            if not isinstance(inc, dict):
+                continue
+            
+            # Safe coordinate retrieval to avoid KeyError
+            lat = inc.get('latitude')
+            lon = inc.get('longitude')
+            
+            if lat is None or lon is None:
+                continue
+
             sev = inc.get('severity', 'moderate').lower()
             folium.CircleMarker(
-                [inc['latitude'], inc['longitude']],
+                [lat, lon],
                 radius=sev_radius.get(sev, 8),
                 color=sev_colors.get(sev, 'yellow'),
                 fill=True, fillColor=sev_colors.get(sev, 'yellow'),
                 fillOpacity=0.7, weight=2,
                 tooltip=f"⚠️ {sev.upper()} — {inc.get('incident_type', '?')}",
-                popup=f"<b>{inc['id']}</b><br>{inc.get('incident_type','?')}<br>Patient: {inc.get('patient_name','N/A')}"
+                popup=f"<b>{inc.get('id', '?')}</b><br>{inc.get('incident_type','?')}<br>Patient: {inc.get('patient_name','N/A')}"
             ).add_to(m)
 
         # Hospitals
-        for hosp in hospitals:
+        for hosp in valid_hospitals:
             beds = hosp.get('available_beds', 0)
             h_color = 'green' if beds > 10 else ('blue' if beds > 5 else 'red')
             folium.Marker(
-                [hosp['latitude'], hosp['longitude']],
+                [hosp.get('latitude', user_lat), hosp.get('longitude', user_lon)],
                 popup=f"<b>🏥 {hosp.get('name','Hospital')}</b><br>Beds: {beds}/{hosp.get('total_beds', 0)}",
                 icon=folium.Icon(color=h_color, icon='plus-square', prefix='fa', icon_color='white'),
                 tooltip=f"🏥 {hosp.get('name','Hospital')} ({beds} beds)"
@@ -376,6 +390,8 @@ def run():
         if incidents:
             st.markdown("### ⚠️ Active Incidents")
             for inc in incidents:
+                if not isinstance(inc, dict):
+                    continue
                 sev = inc.get('severity', 'moderate').lower()
                 sev_class = f"severity-{sev}"
                 sev_icon = {'critical': '🔴', 'severe': '🟠', 'moderate': '🟡', 'minor': '🟢'}.get(sev, '⚪')
@@ -383,7 +399,7 @@ def run():
                 st.markdown(f"""
                 <div class="glass-card" style="padding:10px 14px; border-left: 3px solid {'#e74c3c' if sev == 'critical' else '#f39c12' if sev == 'severe' else '#f1c40f'};">
                     <span class="{sev_class}">{sev_icon} {sev.upper()}</span> — {inc.get('incident_type', '?')}
-                    <br><span style="color:#888; font-size:0.85em;">{inc['id']} · 👤 {inc.get('patient_name','N/A')}</span>
+                    <br><span style="color:#888; font-size:0.85em;">{inc.get('id', '?')} · 👤 {inc.get('patient_name','N/A')}</span>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -393,13 +409,13 @@ def run():
     st.markdown("---")
     st.markdown("### 🏥 Nearby Hospitals")
 
-    if hospitals_sorted:
-        cols = st.columns(min(4, len(hospitals_sorted)))
-        for idx, hosp in enumerate(hospitals_sorted[:4]):
+    if valid_hospitals:
+        cols = st.columns(min(4, len(valid_hospitals)))
+        for idx, hosp in enumerate(valid_hospitals[:4]):
             with cols[idx % 4]:
                 beds = hosp.get('available_beds', 0)
                 total = hosp.get('total_beds', 1)
-                dist = hosp['distance_km']
+                dist = hosp.get('distance_km', 0)
                 bed_color = '#2ecc71' if beds > 10 else ('#f39c12' if beds > 5 else '#e74c3c')
 
                 st.markdown(f"""
