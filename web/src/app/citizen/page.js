@@ -28,11 +28,12 @@ export default function CitizenPortal() {
   const [online, setOnline] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
+    const t = setTimeout(() => setIsClient(true), 0);
     // Check backend connectivity
     fetch(`${BACKEND}/health`)
       .then(res => setOnline(res.ok))
       .catch(() => setOnline(false));
+    return () => clearTimeout(t);
   }, []);
 
   // REAL GPS LOGIC
@@ -100,13 +101,18 @@ export default function CitizenPortal() {
 
   // LIVE STATUS TRACKER
   useEffect(() => {
-    let t = setInterval(async () => {
+    let isMounted = true;
+
+    const syncData = async () => {
       try {
         const [iR, aR, hR] = await Promise.all([
           fetch(`${BACKEND}/incidents/active`),
           fetch(`${BACKEND}/ambulances/active`),
           fetch(`${BACKEND}/hospitals`)
         ]);
+        
+        if (!isMounted) return;
+
         const iData = await iR.json();
         const aData = await aR.json();
         const hData = await hR.json();
@@ -114,15 +120,27 @@ export default function CitizenPortal() {
         setAmbulances(aData.ambulances || []);
         setHospitals(hData.hospitals || []);
         
-        const currentId = dispatched?.id || localStorage.getItem('naviraksha_incident_id');
+        // Use a functional update or a ref if needed, but since we want to check current state
+        // we can either keep it in dependencies (which causes resets) or use a more complex pattern.
+        // For now, let's just make it cleaner.
+        const currentId = localStorage.getItem('naviraksha_incident_id');
         if (currentId && iData.incidents) {
            const myInc = iData.incidents.find(i => i.id === currentId);
            if (myInc) setDispatched(myInc);
         }
-      } catch (e) { console.error("Sync Error:", e); }
-    }, 3000);
-    return () => clearInterval(t);
-  }, [dispatched]);
+      } catch (e) { 
+        if (isMounted) console.error("Sync Error:", e); 
+      }
+    };
+
+    syncData();
+    const t = setInterval(syncData, 3000);
+    
+    return () => {
+      isMounted = false;
+      clearInterval(t);
+    };
+  }, []); // Remove dispatched from dependencies to avoid infinite reset cycle
 
   if (!isClient) return null;
 

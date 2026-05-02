@@ -4,12 +4,12 @@ Provides convenient methods for database queries
 """
 
 from models import db, Ambulance, Incident, Hospital, Dispatch
-from models import AmbulanceType, AmbulanceStatus, IncidentSeverity, IncidentStatus
+from models import AmbulanceStatus, IncidentStatus
 from datetime import datetime
 import logging
 
 from firebase_config import get_firestore
-from google.cloud import firestore
+
 
 logger = logging.getLogger(__name__)
 
@@ -277,7 +277,7 @@ class HospitalService:
     def get_all():
         """Get all active hospitals"""
         try:
-            hospitals = Hospital.query.filter(Hospital.is_active == True).all()
+            hospitals = Hospital.query.filter(Hospital.is_active).all()
             return [h.to_dict() for h in hospitals]
         except Exception as e:
             logger.error(f"Error getting hospitals: {e}")
@@ -300,7 +300,7 @@ class HospitalService:
         """Get hospitals with available beds"""
         try:
             hospitals = Hospital.query.filter(
-                Hospital.is_active == True,
+                Hospital.is_active,
                 Hospital.available_beds > 0
             ).all()
             return [h.to_dict() for h in hospitals]
@@ -313,11 +313,11 @@ class HospitalService:
         """Get hospitals by specialty"""
         try:
             if specialty == "trauma":
-                hospitals = Hospital.query.filter(Hospital.has_trauma_center == True).all()
+                hospitals = Hospital.query.filter(Hospital.has_trauma_center).all()
             elif specialty == "cardiac":
-                hospitals = Hospital.query.filter(Hospital.has_cardiac_care == True).all()
+                hospitals = Hospital.query.filter(Hospital.has_cardiac_care).all()
             elif specialty == "pediatric":
-                hospitals = Hospital.query.filter(Hospital.has_pediatric_care == True).all()
+                hospitals = Hospital.query.filter(Hospital.has_pediatric_care).all()
             else:
                 hospitals = []
             
@@ -330,7 +330,7 @@ class HospitalService:
     def get_closest(latitude, longitude):
         """Get closest hospital to location"""
         try:
-            hospitals = Hospital.query.filter(Hospital.is_active == True).all()
+            hospitals = Hospital.query.filter(Hospital.is_active).all()
             
             if not hospitals:
                 return None

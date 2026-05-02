@@ -32,7 +32,8 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
   const center = [userLat || 19.076, userLng || 72.877];
 
   useEffect(() => {
-    setIsMounted(true);
+    const t = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(t);
   }, []);
 
   if (!isMounted) return (
@@ -146,5 +147,6 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
     </div>
   );
 });
+LiveMap.displayName = "LiveMap";
 
 export default LiveMap;

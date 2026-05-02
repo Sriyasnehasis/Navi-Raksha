@@ -2,7 +2,6 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import pandas as pd
-import numpy as np
 from datetime import datetime
 import random
 import requests
@@ -419,9 +418,12 @@ def run():
         except Exception:
             st.markdown("""
             <div class="glass-card" style="border-left:3px solid #e74c3c;">
-                <span style="color:#e74c3c;">🔴 Backend Offline</span> — Start with: <code>.venv\\Scripts\\python.exe modules\\backend\\app.py</code>
+                <span style="color:#e74c3c;">🔴 Backend Offline</span> — Start with: <code>python modules/backend/app.py</code>
             </div>
             """, unsafe_allow_html=True)
+            st.error("Model engine connection failed. Using fallback heuristics.")
+            st.info("Ensure the Flask backend is running on port 8000.")
+            st.warning("Prediction confidence may be reduced in fallback mode.")
 
     with tab5:
         st.markdown("### Simulation Replay")

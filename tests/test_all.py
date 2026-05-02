@@ -7,7 +7,6 @@ Or:  python tests/test_all.py
 """
 
 import requests
-import json
 import time
 import sys
 import os

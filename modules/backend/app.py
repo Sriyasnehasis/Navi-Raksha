@@ -1,11 +1,12 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
 import logging
 from datetime import datetime
-import os
-import sys
+import threading
+import time
+import math
+import requests
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 from firebase_admin import firestore
-
 from firebase_config import get_firestore
 
 # Setup logging
@@ -20,7 +21,8 @@ logger.info("✅ Cloud-Sync enabled for Firestore")
 
 # --- INITIAL SEEDING LOGIC ---
 def seed_initial_data():
-    if not db: return
+    if not db:
+        return
     
     # Seed Ambulances if empty
     amb_ref = db.collection('ambulances')
@@ -31,7 +33,8 @@ def seed_initial_data():
             {'id': 'BLS-001', 'driver_name': 'Amit Patel', 'status': 'available', 'type': 'BLS', 'latitude': 19.086, 'longitude': 72.887},
             {'id': 'BIKE-001', 'driver_name': 'Suresh Nair', 'status': 'available', 'type': 'Bike', 'latitude': 19.096, 'longitude': 72.897}
         ]
-        for a in fleet: amb_ref.document(a['id']).set(a)
+        for a in fleet:
+            amb_ref.document(a['id']).set(a)
 
     # Seed Hospitals if empty
     hosp_ref = db.collection('hospitals')
@@ -41,11 +44,12 @@ def seed_initial_data():
             {'id': 'H001', 'name': 'Fortis Hospital Navi Mumbai', 'available_beds': 45, 'total_beds': 150, 'latitude': 19.071, 'longitude': 72.997},
             {'id': 'H002', 'name': 'Apollo Clinic Vashi', 'available_beds': 78, 'total_beds': 100, 'latitude': 19.061, 'longitude': 72.987}
         ]
-        for h in hospitals: hosp_ref.document(h['id']).set(h)
+        for h in hospitals:
+            hosp_ref.document(h['id']).set(h)
 
 seed_initial_data()
 
-import requests
+
 
 def get_precise_location(lat, lon):
     """Live Geocoder: Fetches exact building/street addresses from OpenStreetMap"""
@@ -106,7 +110,8 @@ def health(): return jsonify({"status": "ok"})
 
 @app.route('/ambulances/active')
 def get_ambulances(): 
-    if not db: return jsonify({"ambulances": []})
+    if not db:
+        return jsonify({"ambulances": []})
     docs = db.collection('ambulances').stream()
     res = []
     for doc in docs:
@@ -117,7 +122,8 @@ def get_ambulances():
 
 @app.route('/incidents/active')
 def get_incidents(): 
-    if not db: return jsonify({"incidents": []})
+    if not db:
+        return jsonify({"incidents": []})
     # Get last 10 incidents ordered by time
     docs = db.collection('incidents').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(10).stream()
     res = []
@@ -129,7 +135,8 @@ def get_incidents():
 
 @app.route('/hospitals')
 def get_hospitals(): 
-    if not db: return jsonify({"hospitals": []})
+    if not db:
+        return jsonify({"hospitals": []})
     docs = db.collection('hospitals').stream()
     return jsonify({"hospitals": [doc.to_dict() for doc in docs]})
 
@@ -164,9 +171,7 @@ def dispatch():
     
     return jsonify(mock_inc)
 
-import threading
-import time
-import math
+
 
 def move_ambulances_task():
     """Background task to simulate live movement of dispatched ambulances."""
@@ -181,12 +186,14 @@ def move_ambulances_task():
             for amb in ambs:
                 a_data = amb.to_dict()
                 inc_id = a_data.get('assigned_incident')
-                if not inc_id: continue
+                if not inc_id:
+                    continue
                 
                 # Get the incident they are going to
                 inc_ref = db.collection('incidents').document(inc_id)
                 inc_doc = inc_ref.get()
-                if not inc_doc.exists: continue
+                if not inc_doc.exists:
+                    continue
                 i_data = inc_doc.to_dict()
                 
                 # Calculate movement (simple step toward target)
@@ -222,7 +229,8 @@ threading.Thread(target=move_ambulances_task, daemon=True).start()
 
 @app.route('/incidents/<inc_id>/status', methods=['PUT'])
 def update_incident_status(inc_id):
-    if not db: return jsonify({"error": "No DB"}), 500
+    if not db:
+        return jsonify({"error": "No DB"}), 500
     data = request.json
     status = data.get('status', 'Dispatched')
     
@@ -232,7 +240,8 @@ def update_incident_status(inc_id):
         if status == 'Dispatched':
             amb_query = db.collection('ambulances').where('status', '==', 'available').limit(1).stream()
             assigned_amb = None
-            for a in amb_query: assigned_amb = a
+            for a in amb_query:
+                assigned_amb = a
             
             if assigned_amb:
                 # Update Ambulance

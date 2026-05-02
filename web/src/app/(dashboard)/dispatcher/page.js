@@ -68,9 +68,26 @@ export default function AdminPanel() {
   }, []);
 
   useEffect(() => {
-    fetchData();
-    const t = setInterval(fetchData, 4000);
-    return () => clearInterval(t);
+    let isMounted = true;
+
+    const initFetch = async () => {
+      if (isMounted) {
+        await fetchData();
+      }
+    };
+
+    initFetch();
+
+    const t = setInterval(() => {
+      if (isMounted) {
+        fetchData();
+      }
+    }, 4000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(t);
+    };
   }, [fetchData]);
 
   // Calculate Dynamic Avg ETA

@@ -349,7 +349,7 @@ export default function GatewayPage() {
           </h1>
 
           <p className="gw-subtitle">
-            Next-generation ambulance dispatch powered by a Random Forest AI model — coordinating Navi Mumbai's emergency response grid in real time.
+            Next-generation ambulance dispatch powered by a Random Forest AI model — coordinating Navi Mumbai&apos;s emergency response grid in real time.
           </p>
 
           {/* Cards */}
@@ -381,7 +381,7 @@ export default function GatewayPage() {
                 <div className="gw-card-icon blue">🛡️</div>
                 <h2 className="gw-card-title blue">Command Center</h2>
                 <p className="gw-card-desc">
-                  Authorized personnel only. Monitor fleet, validate ML model output, and coordinate Navi Mumbai's response grid.
+                  Authorized personnel only. Monitor fleet, validate ML model output, and coordinate Navi Mumbai&apos;s response grid.
                 </p>
                 <button className="gw-card-cta navy" onClick={() => router.push("/dispatcher")}>
                   ADMIN ACCESS →

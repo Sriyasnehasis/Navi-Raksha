@@ -28,7 +28,8 @@ export default function SimulationPage() {
   const [lastSync, setLastSync] = useState("");
 
   useEffect(() => {
-    setMounted(true);
+    const t = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(t);
   }, []);
 
   const generateData = useCallback(() => {
@@ -63,7 +64,8 @@ export default function SimulationPage() {
 
   useEffect(() => {
     if (mounted) {
-      generateData();
+      const t = setTimeout(() => generateData(), 0);
+      return () => clearTimeout(t);
     }
   }, [mounted, generateData]);
 
