@@ -208,35 +208,8 @@ def run():
     </div>
     """, unsafe_allow_html=True)
 
-    # ------------------------------------------------------------------ #
-    # KPI Row
-    # ------------------------------------------------------------------ #
-    total = len(fleet_df)
-    avail = len(fleet_df[fleet_df['Status'].str.lower().str.contains('available')])
-    en_route = len(fleet_df[fleet_df['Status'].str.lower().str.contains('en route|responding')])
-    active_inc = len(incidents_df)
-    pending = len(incidents_df[incidents_df['Status'].str.lower().str.contains('waiting')]) if not incidents_df.empty else 0
-
     # Main tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["🚗 Fleet Status", "🚨 Incidents Queue", "📊 Analytics", "⚙️ Settings", "🎬 Simulation Replay"])
-    k1, k2, k3, k4, k5 = st.columns(5)
-    with k1:
-        st.markdown(f'<div class="kpi-card"><h4>TOTAL UNITS</h4><h2>{total}</h2></div>', unsafe_allow_html=True)
-    with k2:
-        st.markdown(f'<div class="kpi-card kpi-green"><h4>AVAILABLE</h4><h2>{avail}</h2></div>', unsafe_allow_html=True)
-    with k3:
-        st.markdown(f'<div class="kpi-card kpi-orange"><h4>EN ROUTE</h4><h2>{en_route}</h2></div>', unsafe_allow_html=True)
-    with k4:
-        st.markdown(f'<div class="kpi-card kpi-red"><h4>INCIDENTS</h4><h2>{active_inc}</h2></div>', unsafe_allow_html=True)
-    with k5:
-        st.markdown(f'<div class="kpi-card" style="background:linear-gradient(135deg,#8e44ad,#9b59b6);box-shadow:0 8px 25px rgba(142,68,173,0.3);"><h4>PENDING</h4><h2>{pending}</h2></div>', unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # ------------------------------------------------------------------ #
-    # Tabs
-    # ------------------------------------------------------------------ #
-    tab1, tab2, tab3, tab4 = st.tabs(["🚗 Fleet Status", "🚨 Incidents", "📊 Analytics", "⚙️ Settings"])
 
     # ---- TAB 1: Fleet ---- #
     with tab1:
@@ -245,8 +218,8 @@ def run():
         with map_col:
             m = folium.Map(location=[19.0760, 72.8777], zoom_start=12)
 
-            colors = {'ALS': 'red', 'BLS': 'orange', 'Mini': 'green', 'BIKE': 'darkred'}
-            for _, row in fleet_df.iterrows():
+            colors = {'ALS': 'red', 'BLS': 'orange', 'ADVANCED': 'blue', 'BIKE': 'green', 'MINI': 'green'}
+            for _, row in st.session_state.fleet.iterrows():
                 color = colors.get(row['Type'], 'blue')
                 folium.Marker(
                     [row['lat'], row['lon']],
@@ -280,7 +253,7 @@ def run():
 
             st.markdown("---")
             st.markdown("### 📋 Fleet Summary")
-            for _, row in fleet_df.iterrows():
+            for _, row in st.session_state.fleet.iterrows():
                 status_raw = row['Status'].lower()
                 if 'available' in status_raw:
                     pill = '<span class="status-pill pill-available">Available</span>'
@@ -302,7 +275,7 @@ def run():
 
     # ---- TAB 2: Incidents ---- #
     with tab2:
-        if incidents_df.empty:
+        if st.session_state.incidents.empty:
             st.markdown("""
             <div style="text-align:center; padding:40px;">
                 <span style="font-size:3em;">✅</span>
@@ -311,7 +284,7 @@ def run():
             </div>
             """, unsafe_allow_html=True)
         else:
-            for idx, row in incidents_df.iterrows():
+            for idx, row in st.session_state.incidents.iterrows():
                 severity = row.get('Severity', 'Medium')
                 sev_lower = severity.lower()
                 sev_icon = {'critical': '🔴', 'high': '🟠', 'medium': '🟡', 'low': '🟢'}.get(sev_lower, '🟡')
@@ -350,7 +323,7 @@ def run():
         with m2:
             st.metric("Success Rate", "94.5%", "+2.1%")
         with m3:
-            st.metric("Calls Today", f"{active_inc + 9}", "+3")
+            st.metric("Calls Today", f"{len(st.session_state.incidents) + 9}", "+3")
         with m4:
             st.metric("Hospitals Online", f"{len(hospitals)}", "0")
 
@@ -377,8 +350,8 @@ def run():
         # Fleet utilization
         st.markdown("#### Fleet Utilization")
         util_data = pd.DataFrame({
-            'Unit': fleet_df['ID'].tolist(),
-            'Utilization %': [random.randint(40, 95) for _ in range(len(fleet_df))]
+            'Unit': st.session_state.fleet['ID'].tolist(),
+            'Utilization %': [random.randint(40, 95) for _ in range(len(st.session_state.fleet))]
         })
         st.bar_chart(util_data.set_index('Unit'))
 

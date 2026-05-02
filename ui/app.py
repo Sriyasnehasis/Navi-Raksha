@@ -158,6 +158,21 @@ st.markdown("""
         transition: width 1s ease;
     }
     
+    /* Metric highlights for Dispatcher Dashboard */
+    .metric-highlight {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px; padding: 15px; text-align: center;
+        transition: all 0.3s ease;
+    }
+    .metric-highlight:hover {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(102,126,234,0.4);
+        transform: translateY(-2px);
+    }
+    .metric-highlight h3 { color: #888 !important; font-size: 0.85em; margin: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+    .metric-highlight h2 { color: #00d4ff !important; font-size: 1.8em; margin: 5px 0 0 0; font-weight: 700; }
+    
     /* Footer */
     .footer-text { color: #555 !important; font-size: 0.8em; text-align: center; margin-top: 20px; }
 </style>

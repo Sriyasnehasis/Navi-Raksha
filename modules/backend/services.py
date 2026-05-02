@@ -8,6 +8,9 @@ from models import AmbulanceType, AmbulanceStatus, IncidentSeverity, IncidentSta
 from datetime import datetime
 import logging
 
+from firebase_config import get_firestore
+from google.cloud import firestore
+
 logger = logging.getLogger(__name__)
 
 class AmbulanceService:
@@ -90,7 +93,14 @@ class AmbulanceService:
                 amb.status = new_status
                 amb.updated_at = datetime.utcnow()
                 db.session.commit()
-                logger.info(f"Updated ambulance {ambulance_id} status to {new_status}")
+                # Sync to Firestore
+                fs = get_firestore()
+                if fs:
+                    try:
+                        fs.collection('ambulances').document(ambulance_id).set(amb.to_dict(), merge=True)
+                    except Exception as fe:
+                        logger.error(f"Firestore sync error: {fe}")
+                
                 return amb.to_dict()
             return None
         except Exception as e:
@@ -108,6 +118,14 @@ class AmbulanceService:
                 amb.longitude = longitude
                 amb.updated_at = datetime.utcnow()
                 db.session.commit()
+                # Sync to Firestore
+                fs = get_firestore()
+                if fs:
+                    try:
+                        fs.collection('ambulances').document(ambulance_id).set(amb.to_dict(), merge=True)
+                    except Exception as fe:
+                        logger.error(f"Firestore sync error: {fe}")
+                
                 return amb.to_dict()
             return None
         except Exception as e:
@@ -187,6 +205,14 @@ class IncidentService:
             db.session.add(incident)
             db.session.commit()
             logger.info(f"Created incident {incident_id}")
+            # Sync to Firestore
+            fs = get_firestore()
+            if fs:
+                try:
+                    fs.collection('incidents').document(incident_id).set(incident.to_dict(), merge=True)
+                except Exception as fe:
+                    logger.error(f"Firestore sync error: {fe}")
+            
             return incident.to_dict()
         except Exception as e:
             logger.error(f"Error creating incident: {e}")
@@ -210,6 +236,16 @@ class IncidentService:
                 
                 db.session.commit()
                 logger.info(f"Assigned ambulance {ambulance_id} to incident {incident_id}")
+                
+                # Sync to Firestore
+                fs = get_firestore()
+                if fs:
+                    try:
+                        fs.collection('incidents').document(incident_id).set(inc.to_dict(), merge=True)
+                        fs.collection('ambulances').document(ambulance_id).set(amb.to_dict(), merge=True)
+                    except Exception as fe:
+                        logger.error(f"Firestore sync error: {fe}")
+                
                 return inc.to_dict()
             return None
         except Exception as e:
