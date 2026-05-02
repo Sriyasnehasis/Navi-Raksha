@@ -51,6 +51,9 @@ export default function CitizenPortal() {
 
   const sendSOS = async () => {
     if (!name) return alert("Please enter your name!");
+    if (!phone || phone.length !== 10 || !/^\d+$/.test(phone)) {
+      return alert("Please enter a valid 10-digit mobile number!");
+    }
     setSending(true);
     
     // Persist name for the Admin Sidebar
@@ -193,12 +196,15 @@ export default function CitizenPortal() {
                 }} 
               />
               <input 
-                placeholder="Mobile Number" 
+                placeholder="10-Digit Mobile Number" 
+                type="tel"
+                maxLength={10}
                 style={{...styles.input, marginTop: 10}} 
                 value={phone} 
                 onChange={(e) => {
-                  setPhone(e.target.value);
-                  localStorage.setItem('naviraksha_citizen_phone', e.target.value);
+                  const val = e.target.value.replace(/\D/g, ''); // Only allow digits
+                  setPhone(val);
+                  localStorage.setItem('naviraksha_citizen_phone', val);
                 }} 
               />
               <select 

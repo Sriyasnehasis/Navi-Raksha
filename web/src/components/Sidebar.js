@@ -13,21 +13,20 @@ export default function Sidebar() {
 
   useEffect(() => {
     const checkSync = async () => {
-      // Citizen Sync from LocalStorage or DB
-      const name = localStorage.getItem('naviraksha_citizen_name');
-      const phone = localStorage.getItem('naviraksha_citizen_phone');
-      if (name) {
-        setCitizenName(name);
-        setCitizenPhone(phone || "");
-      } else {
-        try {
-          const res = await fetch("http://127.0.0.1:8000/incidents/active");
-          const iData = await res.json();
-          if (iData.incidents?.length > 0) {
-            setCitizenName(iData.incidents[0].patient_name || "Active Signal");
-            setCitizenPhone(iData.incidents[0].phone || "");
-          }
-        } catch (e) {}
+      try {
+        const res = await fetch("http://127.0.0.1:8000/incidents/active");
+        const iData = await res.json();
+        
+        if (iData.incidents?.length > 0) {
+          setCitizenName(iData.incidents[0].patient_name || "Active Signal");
+          setCitizenPhone(iData.incidents[0].phone || "");
+        } else {
+          setCitizenName("No Active SOS Signal");
+          setCitizenPhone("");
+        }
+      } catch (e) {
+        console.error("Sidebar Sync Error:", e);
+        setCitizenName("Sync Offline");
       }
 
       // Hospital Sync from DB
