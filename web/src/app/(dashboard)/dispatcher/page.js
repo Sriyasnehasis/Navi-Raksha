@@ -47,24 +47,41 @@ export default function AdminPanel() {
     });
   };
 
-  const fetchData = useCallback(async () => {
-    try {
-      const [aR, iR, hR] = await Promise.all([
-        fetch(`${BACKEND}/ambulances/active`),
-        fetch(`${BACKEND}/incidents/active`),
-        fetch(`${BACKEND}/hospitals`),
-      ]);
-      const newAmbs = (await aR.json()).ambulances || [];
-      const newIncs = (await iR.json()).incidents || [];
-      const newHosps = (await hR.json()).hospitals || [];
-
-      setAmbulances(newAmbs);
-      setIncidents(newIncs);
-      setHospitals(newHosps);
-      setIsLive(true);
-    } catch {
-      setIsLive(false);
+  const handleCleanup = async () => {
+    if (window.confirm("Purge all system data? This will delete all incidents and reset ambulances to clear Firebase quota.")) {
+      try {
+        const res = await fetch(`${BACKEND}/admin/cleanup`, { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert("System Reset Complete");
+          fetchData();
+        }
+      } catch (err) {
+        alert("Cleanup Failed: " + err.message);
+      }
     }
+  };
+
+  const fetchData = useCallback(() => {
+    (async () => {
+      try {
+        const [aR, iR, hR] = await Promise.all([
+          fetch(`${BACKEND}/ambulances/active`),
+          fetch(`${BACKEND}/incidents/active`),
+          fetch(`${BACKEND}/hospitals`),
+        ]);
+        const newAmbs = (await aR.json()).ambulances || [];
+        const newIncs = (await iR.json()).incidents || [];
+        const newHosps = (await hR.json()).hospitals || [];
+
+        setAmbulances(newAmbs);
+        setIncidents(newIncs);
+        setHospitals(newHosps);
+        setIsLive(true);
+      } catch {
+        setIsLive(false);
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -115,7 +132,27 @@ export default function AdminPanel() {
            <div style={S.topStat}><div style={S.topStatVal}>{ambulances.filter(a=>a.status==='available').length}</div><div style={S.topStatLabel}>AVAIL UNITS</div></div>
            <div style={S.topStat}><div style={S.topStatVal}>{hospitals.length}</div><div style={S.topStatLabel}>HOSPITALS</div></div>
            <div style={S.topStat}><div style={S.topStatVal}>{avgEta}m</div><div style={S.topStatLabel}>AVG ETA</div></div>
-           <RefreshCw size={16} color="#94A3B8" style={{ cursor: 'pointer', animation: isLive ? 'spin 2s linear infinite' : 'none' }} onClick={fetchData} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button 
+                onClick={handleCleanup}
+                style={{ 
+                  background: '#FEF2F2', 
+                  border: '1px solid #FEE2E2', 
+                  borderRadius: '6px', 
+                  padding: '4px 8px', 
+                  fontSize: '11px', 
+                  color: '#DC2626', 
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontWeight: 800
+                }}
+              >
+                <AlertCircle size={12} /> RESET GRID
+              </button>
+              <RefreshCw size={16} color="#94A3B8" style={{ cursor: 'pointer', animation: isLive ? 'spin 2s linear infinite' : 'none' }} onClick={fetchData} />
+            </div>
         </div>
       </div>
 

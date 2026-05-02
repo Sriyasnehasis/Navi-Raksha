@@ -2,6 +2,7 @@ import streamlit as st
 import folium
 from streamlit_folium import st_folium
 import requests
+import numpy as np
 from datetime import datetime
 
 # Get backend URL from secrets (production) or use localhost (development)
