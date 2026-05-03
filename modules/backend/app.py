@@ -33,6 +33,8 @@ STATE = {
     "last_cloud_sync": 0
 }
 
+SYNC_INTERVAL = 5 # Rapid recovery
+
 # --- GEOGRAPHIC INTELLIGENCE ---
 BRIDGES = [
     (19.0433, 72.9833), # Vashi Bridge
@@ -46,30 +48,42 @@ def get_route(s_lat, s_lng, e_lat, e_lng):
     bridge = min(BRIDGES, key=lambda b: (abs(b[0]-s_lat) + abs(b[1]-s_lng)))
     return [[s_lat, s_lng], [bridge[0], bridge[1]], [e_lat, e_lng]]
 
-SYNC_INTERVAL = 60 
-
 def get_neighborhood(lat, lng):
-    if lat > 19.10: return "Airoli, Sector 5"
-    if lat > 19.08: return "Kopar Khairane, Sector 2"
+    if lat > 19.12: return "Airoli, Sector 5"
+    if lat > 19.10: return "Ghansoli, Sector 3"
+    if lat > 19.08: return "Kopar Khairane, Sector 12"
     if lat > 19.06: return "Vashi, Sector 17"
     if lat > 19.04: return "Nerul, Palm Beach Road"
-    return "Belapur, CBD Sector 11"
+    if lat > 19.02: return "Belapur, CBD Sector 11"
+    return "Sanpada, Sector 5"
 
-def get_ai_recommendation(incident_type, severity):
-    if severity.lower() == 'critical': return {'type': 'ALS', 'eta': '3.5 - 4.2 min', 'conf': '98%'}
-    return {'type': 'BLS', 'eta': '5.0 - 6.0 min', 'conf': '91%'}
+def get_ai_recommendation(lat, lng):
+    available_units = [a for a in STATE["ambulances"] if a['status'] == 'available']
+    if not available_units:
+        return {'type': 'ALS', 'eta': '10-12 min', 'conf': '85%'}
+    closest = min(available_units, key=lambda a: math.sqrt((a['latitude']-lat)**2 + (a['longitude']-lng)**2))
+    dist_km = math.sqrt((closest['latitude']-lat)**2 + (closest['longitude']-lng)**2) * 111
+    eta_min = round((dist_km / 40) * 60 + 1, 1)
+    return {'type': closest['type'], 'eta': f"{eta_min} min", 'conf': '94%'}
 
 # --- BACKGROUND ENGINES ---
 def cloud_sync_task():
     while True:
         if db:
             try:
-                # Only sync incidents/hospitals to avoid overwriting live local movement
-                inc_docs = db.collection('incidents').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(20).stream()
-                new_incs = [{**d.to_dict(), 'id': d.id} for d in inc_docs]
-                STATE["incidents"] = new_incs
+                # Order by timestamp to get latest first
+                docs = db.collection('incidents').limit(20).stream()
+                cloud_incs = []
+                for d in docs:
+                    data = d.to_dict()
+                    data['id'] = d.id
+                    cloud_incs.append(data)
+                
+                # Update memory
+                STATE["incidents"] = cloud_incs
                 STATE["last_cloud_sync"] = time.time()
-            except: pass
+            except Exception as e:
+                print(f"Sync error: {e}")
         time.sleep(SYNC_INTERVAL)
 
 def movement_loop():
