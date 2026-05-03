@@ -151,14 +151,12 @@ def dispatch():
         "location_address": get_neighborhood(lat, lng),
         "status": "Waiting",
         "timestamp": datetime.now(),
-        "prediction": get_ai_recommendation(data.get("incident_type", ""), data.get("severity", ""))
+        "prediction": get_ai_recommendation(lat, lng)
     }
     STATE["incidents"].insert(0, new_inc)
     if db:
-        def save():
-            try: db.collection('incidents').document(new_inc['id']).set(new_inc)
-            except: pass
-        threading.Thread(target=save).start()
+        try: db.collection('incidents').document(new_inc['id']).set(new_inc)
+        except: pass
     return jsonify(new_inc)
 
 @app.route('/incidents/<inc_id>/status', methods=['PUT'])
