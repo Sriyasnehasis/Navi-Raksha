@@ -218,10 +218,24 @@ def health():
 
 @app.route('/ambulances/active')
 def get_ambulances(): 
+    if db:
+        try:
+            docs = db.collection('ambulances').stream()
+            ambs = [{**d.to_dict(), 'id': d.id} for d in docs]
+            if ambs: return jsonify({"ambulances": ambs})
+        except: pass
     return jsonify({"ambulances": STATE["ambulances"]})
 
 @app.route('/incidents/active')
 def get_incidents(): 
+    if db:
+        try:
+            # Get only Waiting or Dispatched incidents
+            docs = db.collection('incidents').where('status', 'in', ['Waiting', 'Dispatched']).order_by('timestamp', direction=firestore.Query.DESCENDING).limit(10).stream()
+            incs = [{**d.to_dict(), 'id': d.id} for d in docs]
+            if incs: return jsonify({"incidents": incs})
+        except Exception as e:
+            logger.error(f"Firestore Incident Fetch Error: {e}")
     return jsonify({"incidents": STATE["incidents"]})
 
 @app.route('/hospitals')
