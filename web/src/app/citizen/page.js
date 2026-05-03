@@ -22,7 +22,11 @@ export default function CitizenPortal() {
   const [injuryType, setInjuryType] = useState("Cardiac");
   const [severity, setSeverity] = useState("Moderate");
   const [simMode, setSimMode] = useState(true);
-  const [simPos, setSimPos] = useState([19.0330, 73.0190]);
+  // Default to a random spot in Navi Mumbai (Vashi to Belapur range)
+  const [simPos, setSimPos] = useState([
+    19.03 + (Math.random() * 0.06), 
+    73.01 + (Math.random() * 0.04)
+  ]);
   const [isClient, setIsClient] = useState(false);
   const [dispatched, setDispatched] = useState(null);
   const [sending, setSending] = useState(false);

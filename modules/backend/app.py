@@ -106,6 +106,10 @@ threading.Thread(target=movement_loop, daemon=True).start()
 
 # --- ROUTES ---
 
+# --- START BACKGROUND TASKS ---
+threading.Thread(target=cloud_sync_task, daemon=True).start()
+threading.Thread(target=movement_loop, daemon=True).start()
+
 @app.route('/health')
 def health():
     return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
@@ -125,8 +129,10 @@ def get_hospitals():
 @app.route('/dispatch', methods=['POST'])
 def dispatch():
     data = request.json
-    lat = data.get("latitude", 19.0330)
-    lng = data.get("longitude", 73.0190)
+    import random
+    # Add tiny jitter to prevent perfect overlap (approx 50-100m)
+    lat = data.get("latitude", 19.0330) + (random.uniform(-0.0005, 0.0005))
+    lng = data.get("longitude", 73.0190) + (random.uniform(-0.0005, 0.0005))
     new_inc = {
         "id": f"INC-{datetime.now().strftime('%M%S')}",
         "patient_name": data.get("patient_name", "Unknown"),
