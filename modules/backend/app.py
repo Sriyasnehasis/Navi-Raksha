@@ -24,11 +24,27 @@ STATE = {
     ],
     "incidents": [],
     "hospitals": [
-        {'id': 'H001', 'name': 'Fortis Hospital Navi Mumbai', 'available_beds': 45, 'total_beds': 150, 'latitude': 19.071, 'longitude': 72.997},
-        {'id': 'H002', 'name': 'Apollo Clinic Vashi', 'available_beds': 78, 'total_beds': 100, 'latitude': 19.061, 'longitude': 72.987}
+        {'id': 'H001', 'name': 'Fortis Hospital Vashi', 'available_beds': 45, 'total_beds': 150, 'latitude': 19.071, 'longitude': 72.997},
+        {'id': 'H002', 'name': 'Apollo Clinic Vashi', 'available_beds': 78, 'total_beds': 100, 'latitude': 19.061, 'longitude': 72.987},
+        {'id': 'H003', 'name': 'MGM Hospital Vashi', 'available_beds': 56, 'total_beds': 200, 'latitude': 19.074, 'longitude': 73.003},
+        {'id': 'H004', 'name': 'Reliance Hospital KK', 'available_beds': 112, 'total_beds': 250, 'latitude': 19.098, 'longitude': 73.012},
+        {'id': 'H005', 'name': 'Terna Hospital Nerul', 'available_beds': 34, 'total_beds': 120, 'latitude': 19.034, 'longitude': 73.021}
     ],
     "last_cloud_sync": 0
 }
+
+# --- GEOGRAPHIC INTELLIGENCE ---
+BRIDGES = [
+    (19.0433, 72.9833), # Vashi Bridge
+    (19.1411, 72.9855)  # Airoli Bridge
+]
+
+def get_route(s_lat, s_lng, e_lat, e_lng):
+    # If same side of creek, direct line. If crossing creek, use bridge.
+    if (s_lng < 72.985 and e_lng < 72.985) or (s_lng > 72.985 and e_lng > 72.985):
+        return [[s_lat, s_lng], [e_lat, e_lng]]
+    bridge = min(BRIDGES, key=lambda b: (abs(b[0]-s_lat) + abs(b[1]-s_lng)))
+    return [[s_lat, s_lng], [bridge[0], bridge[1]], [e_lat, e_lng]]
 
 SYNC_INTERVAL = 60 
 
@@ -149,6 +165,8 @@ def dispatch():
 def update_status(inc_id):
     status = request.json.get('status', 'Dispatched')
     assigned_amb_id = None
+    route_path = None
+    
     for inc in STATE["incidents"]:
         if inc['id'] == inc_id:
             inc['status'] = status
@@ -158,16 +176,18 @@ def update_status(inc_id):
                         amb['status'] = 'responding'
                         amb['assigned_incident'] = inc_id
                         assigned_amb_id = amb['id']
+                        route_path = get_route(amb['latitude'], amb['longitude'], inc['latitude'], inc['longitude'])
+                        inc['path'] = route_path
                         break
     if db:
         def update():
             try:
-                db.collection('incidents').document(inc_id).update({'status': status})
+                db.collection('incidents').document(inc_id).update({'status': status, 'path': route_path})
                 if assigned_amb_id:
                     db.collection('ambulances').document(assigned_amb_id).update({'status': 'responding', 'assigned_incident': inc_id})
             except: pass
         threading.Thread(target=update).start()
-    return jsonify({"status": "updated"})
+    return jsonify({"status": "updated", "path": route_path})
 
 @app.route('/admin/cleanup', methods=['POST'])
 def cleanup():
