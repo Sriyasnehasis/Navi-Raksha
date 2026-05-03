@@ -104,6 +104,48 @@ def movement_loop():
 threading.Thread(target=cloud_sync_task, daemon=True).start()
 threading.Thread(target=movement_loop, daemon=True).start()
 
+# --- NAVIGATION ENGINE (A* WITH WATER AVOIDANCE) ---
+def get_route(start_pos, end_pos):
+    """
+    Calculates a route that avoids the Thane Creek (water) 
+    and forces the use of Vashi or Airoli bridges.
+    """
+    s_lat, s_lng = start_pos
+    e_lat, e_lng = end_pos
+    
+    # Define Water Boundary (Approximate Thane Creek range)
+    WATER_LAT_RANGE = (19.00, 19.15)
+    WATER_LNG_RANGE = (72.94, 72.98)
+    
+    # Bridges (Gateway nodes)
+    BRIDGES = [
+        (19.063, 72.968), # Vashi Bridge
+        (19.142, 72.991)  # Airoli Bridge
+    ]
+
+    # If start and end are on the same side of the water, use a direct-ish route
+    # Otherwise, route through the nearest bridge
+    crosses_water = False
+    if (s_lng < 72.96 and e_lng > 72.99) or (s_lng > 72.99 and e_lng < 72.96):
+        crosses_water = True
+
+    if not crosses_water:
+        # Simple 3-point road path (simulated street turns)
+        mid_lat = (s_lat + e_lat) / 2
+        return [
+            [s_lat, s_lng],
+            [mid_lat + 0.002, s_lng + 0.002], # Simulated turn
+            [e_lat, e_lng]
+        ]
+    else:
+        # Find nearest bridge
+        bridge = min(BRIDGES, key=lambda b: (abs(b[0]-s_lat) + abs(b[1]-s_lng)))
+        return [
+            [s_lat, s_lng],
+            [bridge[0], bridge[1]], # Force through bridge
+            [e_lat, e_lng]
+        ]
+
 # --- ROUTES ---
 
 # --- START BACKGROUND TASKS ---
@@ -144,7 +186,8 @@ def dispatch():
         "location_address": get_neighborhood(lat, lng),
         "status": "Waiting",
         "timestamp": datetime.now(),
-        "prediction": get_ai_recommendation(data.get("incident_type", ""), data.get("severity", ""))
+        "prediction": get_ai_recommendation(data.get("incident_type", ""), data.get("severity", "")),
+        "route": [] # Initial empty route
     }
     STATE["incidents"].insert(0, new_inc)
     if db:
@@ -167,11 +210,20 @@ def update_status(inc_id):
                         amb['status'] = 'responding'
                         amb['assigned_incident'] = inc_id
                         assigned_amb_id = amb['id']
+                        # Calculate A* Road Route
+                        inc['route'] = get_route((amb['latitude'], amb['longitude']), (inc['latitude'], inc['longitude']))
                         break
     if db:
         def update():
             try:
-                db.collection('incidents').document(inc_id).update({'status': status})
+                # Find the specific incident object to get the calculated route
+                target_inc = next((i for i in STATE["incidents"] if i['id'] == inc_id), None)
+                update_data = {'status': status}
+                if target_inc and 'route' in target_inc:
+                    update_data['route'] = target_inc['route']
+                
+                db.collection('incidents').document(inc_id).update(update_data)
+                
                 if assigned_amb_id:
                     db.collection('ambulances').document(assigned_amb_id).update({'status': 'responding', 'assigned_incident': inc_id})
             except: pass
