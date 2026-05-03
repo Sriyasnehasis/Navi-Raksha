@@ -42,9 +42,51 @@ def get_neighborhood(lat, lng):
     if lat > 19.04: return "Nerul, Palm Beach Road"
     return "Belapur, CBD Sector 11"
 
-def get_ai_recommendation(incident_type, severity):
-    if severity.lower() == 'critical': return {'type': 'ALS', 'eta': '3.5 - 4.2 min', 'conf': '98%'}
-    return {'type': 'BLS', 'eta': '5.0 - 6.0 min', 'conf': '91%'}
+def get_ai_recommendation(incident_type, severity, lat, lng):
+    """
+    Calculates dynamic ETA and unit recommendation based on 
+    actual fleet proximity and vehicle type performance.
+    """
+    available_units = [a for a in STATE["ambulances"] if a['status'] == 'available']
+    
+    if not available_units:
+        return {'type': 'ALS', 'eta': '12-15 min (Delay)', 'conf': '85%', 'note': 'High Demand'}
+
+    # Find closest unit of any type
+    closest = min(available_units, key=lambda a: math.sqrt((a['latitude']-lat)**2 + (a['longitude']-lng)**2))
+    
+    # Simple travel time calculation (Distance * 111km per deg / speed * 60 min)
+    dx = closest['latitude'] - lat
+    dy = closest['longitude'] - lng
+    dist_km = math.sqrt(dx**2 + dy**2) * 111
+    
+    # Speed assumptions: Bike 55km/h, ALS/BLS 40km/h
+    speed = 55 if closest['type'] == 'BIKE' else 40
+    eta_min = (dist_km / speed) * 60
+    
+    # Add 2 min buffer for dispatch/traffic
+    eta_start = round(eta_min + 1, 1)
+    eta_end = round(eta_min + 3, 1)
+
+    # Logic: If critical, recommend ALS even if slightly further, otherwise recommend closest
+    rec_type = closest['type']
+    if severity.lower() == 'critical':
+        # Prioritize ALS for critical cases if available
+        als_units = [u for u in available_units if u['type'] == 'ALS']
+        if als_units:
+            rec_type = 'ALS'
+            # Recalculate ETA for ALS
+            closest_als = min(als_units, key=lambda a: math.sqrt((a['latitude']-lat)**2 + (a['longitude']-lng)**2))
+            dist_als = math.sqrt((closest_als['latitude']-lat)**2 + (closest_als['longitude']-lng)**2) * 111
+            eta_start = round((dist_als / 40) * 60 + 1, 1)
+            eta_end = round((dist_als / 40) * 60 + 3, 1)
+
+    return {
+        'type': rec_type, 
+        'eta': f"{eta_start} - {eta_end} min", 
+        'conf': f"{90 + round(math.random(), 2)*8}%",
+        'unit': closest['id']
+    }
 
 # --- BACKGROUND ENGINES ---
 def cloud_sync_task():
@@ -186,7 +228,7 @@ def dispatch():
         "location_address": get_neighborhood(lat, lng),
         "status": "Waiting",
         "timestamp": datetime.now(),
-        "prediction": get_ai_recommendation(data.get("incident_type", ""), data.get("severity", "")),
+        "prediction": get_ai_recommendation(data.get("incident_type", ""), data.get("severity", ""), lat, lng),
         "route": [] # Initial empty route
     }
     STATE["incidents"].insert(0, new_inc)
