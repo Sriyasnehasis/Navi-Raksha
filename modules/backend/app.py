@@ -164,7 +164,7 @@ def dispatch():
         "longitude": lng,
         "location_address": get_neighborhood(lat, lng),
         "status": "Waiting",
-        "timestamp": datetime.now(),
+        "timestamp": datetime.now().isoformat(),
         "prediction": get_ai_recommendation(lat, lng)
     }
     STATE["incidents"].insert(0, new_inc)
