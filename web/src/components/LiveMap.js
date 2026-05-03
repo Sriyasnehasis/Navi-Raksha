@@ -75,24 +75,33 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
           const targetInc = incidents.find(i => i.id === amb.assigned_incident);
           
           return (
-            <React.Fragment key={`amb-group-${amb.id}`}>
+            <React.Fragment key={`amb-group-${amb.id}-${amb.status}`}>
               {isResponding && targetInc && (
-                <Polyline 
-                  positions={[pos, [targetInc.latitude, targetInc.longitude]]} 
-                  color="#4F46E5" 
-                  dashArray="10, 10" 
-                  weight={3} 
-                  opacity={0.6}
-                />
+                <>
+                  {/* Glowing Path Effect */}
+                  <Polyline 
+                    positions={[pos, [targetInc.latitude, targetInc.longitude]]} 
+                    color="#4F46E5" 
+                    weight={6} 
+                    opacity={0.3}
+                  />
+                  <Polyline 
+                    positions={[pos, [targetInc.latitude, targetInc.longitude]]} 
+                    color="#6366F1" 
+                    dashArray="10, 15" 
+                    weight={3} 
+                    opacity={0.8}
+                  />
+                </>
               )}
               
               {isResponding && (
                 <CircleMarker 
                   center={pos} 
-                  radius={20} 
-                  color="#4F46E5" 
-                  fillColor="#4F46E5" 
-                  fillOpacity={0.1} 
+                  radius={25} 
+                  color="#6366F1" 
+                  fillColor="#6366F1" 
+                  fillOpacity={0.15} 
                   weight={1}
                 />
               )}
@@ -101,9 +110,9 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
                 position={pos}
                 icon={L.divIcon({
                   className: '',
-                  html: `<div style="background:${TYPE_COLORS[amb.type?.toUpperCase()]||'#2563eb'};width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 4px 10px rgba(0,0,0,0.15); ${isResponding ? 'animation: pulse 2s infinite;' : ''}">🚑</div>`,
-                  iconSize: [32, 32],
-                  iconAnchor: [16, 16],
+                  html: `<div style="background:${TYPE_COLORS[amb.type?.toUpperCase()]||'#2563eb'};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:3px solid white;box-shadow:0 10px 25px rgba(0,0,0,0.2); transition: all 0.5s ease; ${isResponding ? 'animation: pulse 2s infinite; transform: scale(1.1);' : ''}">🚑</div>`,
+                  iconSize: [36, 36],
+                  iconAnchor: [18, 18],
                 })}
               >
                 <Popup>

@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { Shield, AlertCircle, MapPin, Navigation, Send, Heart, Activity, Zap, CheckCircle, User, Phone, Clock } from "lucide-react";
 import Link from "next/link";
 
-const BACKEND = "http://127.0.0.1:8000";
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
 
 const LiveMap = dynamic(() => import("../../components/LiveMap"), {
   ssr: false,
@@ -21,7 +21,7 @@ export default function CitizenPortal() {
   const [injuryType, setInjuryType] = useState("Cardiac");
   const [severity, setSeverity] = useState("Moderate");
   const [simMode, setSimMode] = useState(true);
-  const [simPos, setSimPos] = useState([19.076, 72.877]);
+  const [simPos, setSimPos] = useState([19.0330, 73.0190]);
   const [isClient, setIsClient] = useState(false);
   const [dispatched, setDispatched] = useState(null);
   const [sending, setSending] = useState(false);

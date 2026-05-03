@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Bell, Activity, Shield, Zap, Info, Map as MapIcon, ChevronRight, AlertCircle, Clock, RefreshCw, Star, Users, Home, Phone } from "lucide-react";
 
-const BACKEND = "http://127.0.0.1:8000";
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
 
 const LiveMap = dynamic(() => import("../../../components/LiveMap"), {
   ssr: false,
@@ -132,7 +132,15 @@ export default function AdminPanel() {
                         <span style={{ ...S.pBadge, background: (INC_PRIORITY[inc.severity?.toLowerCase()] || INC_PRIORITY.moderate).bg, color: (INC_PRIORITY[inc.severity?.toLowerCase()] || INC_PRIORITY.moderate).color }}>{(INC_PRIORITY[inc.severity?.toLowerCase()] || INC_PRIORITY.moderate).label}</span>
                         {inc.phone && <a href={`tel:${inc.phone}`} style={{ fontSize: 11, fontWeight: 700, color: '#4F46E5', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', cursor: 'pointer' }}><Phone size={12} /> {inc.phone}</a>}
                       </div>
-                      <div style={S.timeSince}>{dispatched[inc.id] ? <span style={{ color: '#16A34A', fontWeight: 800 }}>DISPATCHED</span> : <>{inc.time || '0:01'}</>}</div>
+                      <div style={S.timeSince}>
+                        {inc.status === 'Resolved' ? (
+                          <span style={{ color: '#16A34A', fontWeight: 800 }}>✅ RESOLVED</span>
+                        ) : dispatched[inc.id] ? (
+                          <span style={{ color: '#16A34A', fontWeight: 800 }}>DISPATCHED</span>
+                        ) : (
+                          <>{inc.time || '0:01'}</>
+                        )}
+                      </div>
                    </div>
                    <div style={S.cardSubtitle}>{inc.incident_type} · {inc.location_address || 'Navi Mumbai'}</div>
                    <div style={S.modelBox}>

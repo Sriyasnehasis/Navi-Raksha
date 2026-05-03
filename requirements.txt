@@ -1,33 +1,19 @@
-# NaviRaksha Frontend (Streamlit) Dependencies
-
-# Core
-streamlit==1.55.0
-requests==2.31.0
+# Backend API
+flask==3.0.0
+flask-cors==4.0.0
+firebase-admin==6.2.0
+gunicorn==21.2.0
 python-dotenv==1.0.0
+requests==2.31.0
 
-# Data Processing
+# Core Math & Graph
 pandas>=1.5.0
 numpy>=1.23.0
-
-# ML Model Loading
-scikit-learn>=1.6.1
-joblib>=1.5.0
-
-# Visualization
-folium==0.14.0
-plotly>=5.0.0
-streamlit-folium==0.20.0
-
-# Geospatial (minimal set for Python 3.14 compatibility)
 networkx>=3.0
-joblib>=1.2.0
+scikit-learn>=1.3.0
+joblib>=1.3.0
 
-# Database
-sqlalchemy>=2.0.0
-
-# Utilities
-python-dotenv>=0.21.0
-pyyaml>=6.0
-jupyter>=1.0.0
-notebook>=6.5.0
-jupyterlab==4.0.0
+# Dashboard (Streamlit)
+streamlit==1.25.0
+folium==0.14.0
+streamlit-folium==0.13.0
