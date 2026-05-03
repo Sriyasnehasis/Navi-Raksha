@@ -43,12 +43,30 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
   );
 
   return (
-    <div id="map-root-container" style={{ height: "100%", width: "100%", borderRadius: "16px", overflow: "hidden", border: "1px solid #E2E8F0", position: 'relative' }}>
+    <div id="map-root-container" style={{ height: "100%", width: "100%", borderRadius: "24px", overflow: "hidden", border: "1px solid rgba(226, 232, 240, 0.8)", position: 'relative', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}>
       <style>{`
         @keyframes pulse {
-          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
-          70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(220, 38, 38, 0); }
-          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+          70% { transform: scale(1.15); box-shadow: 0 0 0 20px rgba(99, 102, 241, 0); }
+          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+        .leaflet-control-zoom {
+          border: none !important;
+          margin: 20px !important;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.1) !important;
+          backdrop-filter: blur(8px);
+        }
+        .leaflet-control-zoom-in, .leaflet-control-zoom-out {
+          background: rgba(255, 255, 255, 0.8) !important;
+          color: #1E293B !important;
+          border: 1px solid rgba(255,255,255,0.3) !important;
+          font-weight: bold !important;
+          width: 40px !important;
+          height: 40px !important;
+          line-height: 40px !important;
+        }
+        .leaflet-container {
+          background: #f8fafc !important;
         }
       `}</style>
       <MapContainer 
@@ -56,11 +74,12 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
         center={center} 
         zoom={13} 
         style={{ height: "100%", width: "100%", zIndex: 1 }}
+        zoomControl={true}
         scrollWheelZoom={true}
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; OpenStreetMap contributors'
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
         <MapUpdater center={center} />
 
@@ -118,14 +137,26 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
                 position={pos}
                 icon={L.divIcon({
                   className: '',
-                  html: `<div style="background:${TYPE_COLORS[amb.type?.toUpperCase()]||'#2563eb'};width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:3px solid white;box-shadow:0 10px 25px rgba(0,0,0,0.2); transition: all 0.5s ease; ${isResponding ? 'animation: pulse 2s infinite; transform: scale(1.1);' : ''}">🚑</div>`,
-                  iconSize: [36, 36],
-                  iconAnchor: [18, 18],
+                  html: `
+                    <div style="position: relative; width: 44px; height: 44px;">
+                      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: ${TYPE_COLORS[amb.type?.toUpperCase()] || '#2563eb'}; border-radius: 12px; border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; transform: rotate(45deg); transition: all 0.3s ease; ${isResponding ? 'animation: pulse 1.5s infinite;' : ''}">
+                        <div style="transform: rotate(-45deg); font-size: 20px;">🚑</div>
+                      </div>
+                      ${isResponding ? `<div style="position: absolute; top: -5px; right: -5px; width: 14px; height: 14px; background: #6366F1; border: 2px solid #fff; border-radius: 50%; z-index: 10;"></div>` : ''}
+                    </div>
+                  `,
+                  iconSize: [44, 44],
+                  iconAnchor: [22, 22],
                 })}
               >
-                <Popup>
-                  <b>🚑 {amb.id}</b><br />
-                  Status: <span style={{color: isResponding ? '#4F46E5' : '#64748b', fontWeight: 800}}>{amb.status.toUpperCase()}</span>
+                <Popup className="custom-popup">
+                  <div style={{ padding: '4px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#1E293B' }}>{amb.id}</div>
+                    <div style={{ fontSize: '10px', color: '#64748B', textTransform: 'uppercase', letterSpacing: '1px' }}>{amb.type} UNIT</div>
+                    <div style={{ marginTop: '8px', padding: '4px 8px', background: isResponding ? '#EEF2FF' : '#F1F5F9', color: isResponding ? '#4F46E5' : '#64748B', borderRadius: '6px', fontSize: '11px', fontWeight: 700, textAlign: 'center' }}>
+                      {amb.status.toUpperCase()}
+                    </div>
+                  </div>
                 </Popup>
               </Marker>
             </React.Fragment>
@@ -136,13 +167,20 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
           <CircleMarker
             key={`inc-${inc.id}`}
             center={[inc.latitude, inc.longitude]}
-            radius={10}
-            color={inc.severity?.toLowerCase() === 'critical' ? '#dc2626' : '#ea580c'}
+            radius={inc.severity?.toLowerCase() === 'critical' ? 14 : 10}
+            color="#fff"
             fillColor={inc.severity?.toLowerCase() === 'critical' ? '#dc2626' : '#ea580c'}
-            fillOpacity={0.7}
-            weight={2}
+            fillOpacity={0.8}
+            weight={3}
+            style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }}
           >
-            <Popup><b>⚠️ {inc.patient_name}</b><br/>{inc.incident_type}</Popup>
+            <Popup>
+              <div style={{ padding: '2px' }}>
+                <div style={{ color: '#dc2626', fontWeight: 800, fontSize: '12px' }}>⚠️ {inc.severity?.toUpperCase()}</div>
+                <div style={{ fontWeight: 700, margin: '4px 0' }}>{inc.patient_name}</div>
+                <div style={{ fontSize: '11px', color: '#64748B' }}>{inc.incident_type}</div>
+              </div>
+            </Popup>
           </CircleMarker>
         ))}
 
