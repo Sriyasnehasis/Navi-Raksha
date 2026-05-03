@@ -31,12 +31,30 @@ export default function Sidebar() {
         setCitizenName("Sync Offline");
       }
 
-      // Hospital Sync from DB
+      // Hospital Sync from DB with proximity sorting
       try {
         const hRes = await fetch(`${backendUrl}/hospitals`);
         const hData = await hRes.json();
-        setHospitals(hData.hospitals || []);
-      } catch (e) {}
+        let rawHospitals = hData.hospitals || [];
+
+        // If there's an active citizen, sort hospitals by distance
+        if (iData.incidents?.length > 0) {
+          const cLat = iData.incidents[0].latitude;
+          const cLng = iData.incidents[0].longitude;
+
+          rawHospitals = rawHospitals.map(h => {
+            // Simple distance approximation
+            const dist = Math.sqrt(
+              Math.pow(h.latitude - cLat, 2) + Math.pow(h.longitude - cLng, 2)
+            ) * 111; // 1 degree ~ 111km
+            return { ...h, distance: dist };
+          }).sort((a, b) => a.distance - b.distance);
+        }
+
+        setHospitals(rawHospitals.slice(0, 5)); // Show top 5 nearest
+      } catch (e) {
+        console.error("Hospital Fetch Error:", e);
+      }
     };
 
     checkSync();
@@ -104,7 +122,9 @@ export default function Sidebar() {
               return (
                 <div key={h.id} style={{ marginBottom: 12 }}>
                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, marginBottom: 4 }}>
-                      <span>{h.name}</span>
+                      <span style={{ maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {h.name} {h.distance && <span style={{ color: '#6366F1', fontWeight: 500 }}>• {h.distance.toFixed(1)}km</span>}
+                      </span>
                       <span style={{ color: '#EA580C' }}>{avail} beds</span>
                    </div>
                    <div style={{ height: 6, background: '#E2E8F0', borderRadius: 3, overflow: 'hidden' }}>
