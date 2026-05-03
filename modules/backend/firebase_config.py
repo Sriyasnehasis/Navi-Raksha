@@ -13,16 +13,25 @@ def init_firebase():
         return _db
     
     try:
-        # Look for service account key
+        import json
+
+        # 1. Try environment variable (Render/Production)
+        service_account_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
+        if service_account_json:
+            cred = credentials.Certificate(json.loads(service_account_json))
+            firebase_admin.initialize_app(cred)
+            _db = firestore.client()
+            logger.info("✅ Firebase Admin initialized via Environment Variable")
+            return _db
+
+        # 2. Try local file (Development)
         key_path = os.path.join(os.path.dirname(__file__), '..', '..', 'firebase-key.json')
-        
         if os.path.exists(key_path):
             cred = credentials.Certificate(key_path)
             firebase_admin.initialize_app(cred)
             _db = firestore.client()
-            logger.info("✅ Firebase Admin initialized with service account")
+            logger.info("✅ Firebase Admin initialized with local service account")
         else:
-            # Fallback to default credentials (useful for some cloud environments)
             try:
                 firebase_admin.initialize_app()
                 _db = firestore.client()
