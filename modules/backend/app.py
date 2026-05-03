@@ -83,15 +83,29 @@ def cloud_sync_task():
                 # Sync hospitals
                 h_docs = db.collection('hospitals').stream()
                 h_list = [{**d.to_dict(), 'id': d.id} for d in h_docs]
-                if h_list: STATE["hospitals"] = h_list
+                if h_list and len(h_list) > 0:
+                    STATE["hospitals"] = h_list
 
-                # Sync incidents
-                inc_docs = db.collection('incidents').limit(20).stream()
-                new_incs = [{**d.to_dict(), 'id': d.id} for d in inc_docs]
-                if new_incs: STATE["incidents"] = new_incs
+                # Sync incidents (Merge logic)
+                inc_docs = db.collection('incidents').limit(30).stream()
+                cloud_incs = {d.id: {**d.to_dict(), 'id': d.id} for d in inc_docs}
+                
+                if cloud_incs:
+                    # Keep local 'Responding' state but pull new cloud incidents
+                    existing_ids = {i['id'] for i in STATE["incidents"]}
+                    for c_id, c_data in cloud_incs.items():
+                        if c_id not in existing_ids:
+                            STATE["incidents"].append(c_data)
+                        else:
+                            # Update existing but don't overwrite local 'Responding' status if it's active
+                            for local_inc in STATE["incidents"]:
+                                if local_inc['id'] == c_id and local_inc['status'] != 'Dispatched':
+                                    local_inc.update(c_data)
+                
                 STATE["last_cloud_sync"] = time.time()
-            except: pass
-        time.sleep(10)
+            except Exception as e:
+                logger.error(f"Sync Error: {e}")
+        time.sleep(15)
 
 def movement_loop():
     print("🚑 MOVEMENT LOOP STARTED - NAVIRAKSHA ENGINE ACTIVE")
