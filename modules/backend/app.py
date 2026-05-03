@@ -5,6 +5,7 @@ from datetime import datetime
 import threading
 import time
 import math
+import random
 from firebase_admin import firestore
 from firebase_config import get_firestore
 
@@ -245,7 +246,6 @@ def get_hospitals():
 @app.route('/dispatch', methods=['POST'])
 def dispatch():
     data = request.json
-    import random
     # Add tiny jitter to prevent perfect overlap (approx 50-100m)
     lat = data.get("latitude", 19.0330) + (random.uniform(-0.0005, 0.0005))
     lng = data.get("longitude", 73.0190) + (random.uniform(-0.0005, 0.0005))
