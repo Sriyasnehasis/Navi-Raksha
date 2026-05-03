@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { db } from "@/lib/firebase";
+import { db } from "../../lib/firebase.js";
 import { collection, onSnapshot, query, orderBy, limit } from "firebase/firestore";
 import { Ambulance, AlertCircle, Activity, Hospital, Clock, ChevronRight, MapPin } from "lucide-react";
 
