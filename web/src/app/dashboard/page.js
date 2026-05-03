@@ -9,8 +9,6 @@ import { Ambulance, AlertCircle, Activity, Hospital, Clock, ChevronRight, MapPin
 export default function Dashboard() {
   const [ambulances, setAmbulances] = useState([]);
   const [incidents, setIncidents] = useState([]);
-  const [hospitals, setHospitals] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Real-time listener for Ambulances

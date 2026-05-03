@@ -8,13 +8,17 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      NEXT_PUBLIC_BACKEND_URL: https://navi-raksha-backend.onrender.com
     steps:
       - uses: actions/checkout@v4
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
-      - run: cd web && npm ci && npm run build
+      - name: Install Dependencies
+        run: cd web && npm install
+      - name: Build
+        run: cd web && npx next build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
