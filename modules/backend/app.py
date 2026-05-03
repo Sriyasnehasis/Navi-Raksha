@@ -5,7 +5,6 @@ from datetime import datetime
 import threading
 import time
 import math
-import random
 from firebase_admin import firestore
 from firebase_config import get_firestore
 
@@ -13,11 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]}})
-
-@app.before_request
-def log_request_info():
-    logger.info(f"Incoming Request: {request.method} {request.url}")
+CORS(app)
 db = get_firestore()
 
 # --- GLOBAL IN-MEMORY STATE ---
@@ -29,11 +24,8 @@ STATE = {
     ],
     "incidents": [],
     "hospitals": [
-        {'id': 'H001', 'name': 'Fortis Hospital Vashi', 'available_beds': 45, 'total_beds': 150, 'latitude': 19.071, 'longitude': 72.997},
-        {'id': 'H002', 'name': 'Apollo Clinic Vashi', 'available_beds': 78, 'total_beds': 100, 'latitude': 19.061, 'longitude': 72.987},
-        {'id': 'H003', 'name': 'MGM Hospital Vashi', 'available_beds': 56, 'total_beds': 200, 'latitude': 19.074, 'longitude': 73.003},
-        {'id': 'H004', 'name': 'Reliance Hospital KK', 'available_beds': 112, 'total_beds': 250, 'latitude': 19.098, 'longitude': 73.012},
-        {'id': 'H005', 'name': 'Terna Hospital Nerul', 'available_beds': 34, 'total_beds': 120, 'latitude': 19.034, 'longitude': 73.021}
+        {'id': 'H001', 'name': 'Fortis Hospital Navi Mumbai', 'available_beds': 45, 'total_beds': 150, 'latitude': 19.071, 'longitude': 72.997},
+        {'id': 'H002', 'name': 'Apollo Clinic Vashi', 'available_beds': 78, 'total_beds': 100, 'latitude': 19.061, 'longitude': 72.987}
     ],
     "last_cloud_sync": 0
 }
@@ -47,82 +39,22 @@ def get_neighborhood(lat, lng):
     if lat > 19.04: return "Nerul, Palm Beach Road"
     return "Belapur, CBD Sector 11"
 
-def get_ai_recommendation(incident_type, severity, lat, lng):
-    """
-    Calculates dynamic ETA and unit recommendation based on 
-    actual fleet proximity and vehicle type performance.
-    """
-    available_units = [a for a in STATE["ambulances"] if a['status'] == 'available']
-    
-    if not available_units:
-        return {'type': 'ALS', 'eta': '12-15 min (Delay)', 'conf': '85%', 'note': 'High Demand'}
-
-    # Find closest unit of any type
-    closest = min(available_units, key=lambda a: math.sqrt((a['latitude']-lat)**2 + (a['longitude']-lng)**2))
-    
-    # Simple travel time calculation (Distance * 111km per deg / speed * 60 min)
-    dx = closest['latitude'] - lat
-    dy = closest['longitude'] - lng
-    dist_km = math.sqrt(dx**2 + dy**2) * 111
-    
-    # Speed assumptions: Bike 55km/h, ALS/BLS 40km/h
-    speed = 55 if closest['type'] == 'BIKE' else 40
-    eta_min = (dist_km / speed) * 60
-    
-    # Add 2 min buffer for dispatch/traffic
-    eta_start = round(eta_min + 1, 1)
-    eta_end = round(eta_min + 3, 1)
-
-    # Logic: If critical, recommend ALS even if slightly further, otherwise recommend closest
-    rec_type = closest['type']
-    if severity.lower() == 'critical':
-        # Prioritize ALS for critical cases if available
-        als_units = [u for u in available_units if u['type'] == 'ALS']
-        if als_units:
-            rec_type = 'ALS'
-            # Recalculate ETA for ALS
-            closest_als = min(als_units, key=lambda a: math.sqrt((a['latitude']-lat)**2 + (a['longitude']-lng)**2))
-            dist_als = math.sqrt((closest_als['latitude']-lat)**2 + (closest_als['longitude']-lng)**2) * 111
-            eta_start = round((dist_als / 40) * 60 + 1, 1)
-            eta_end = round((dist_als / 40) * 60 + 3, 1)
-
-    return {
-        'type': rec_type, 
-        'eta': f"{eta_start} - {eta_end} min", 
-        'conf': f"{90 + round(random.random(), 2)*8}%",
-        'unit': closest['id']
-    }
+def get_ai_recommendation(incident_type, severity):
+    if severity.lower() == 'critical': return {'type': 'ALS', 'eta': '3.5 - 4.2 min', 'conf': '98%'}
+    return {'type': 'BLS', 'eta': '5.0 - 6.0 min', 'conf': '91%'}
 
 # --- BACKGROUND ENGINES ---
 def cloud_sync_task():
     while True:
         if db:
             try:
-                # Sync hospitals every time to get bed updates
-                h_docs = db.collection('hospitals').stream()
-                h_list = [{**d.to_dict(), 'id': d.id} for d in h_docs]
-                if h_list:
-                    STATE["hospitals"] = h_list
-
-                # Merge incidents: Pull from cloud but keep local 'Responding' state
-                inc_docs = db.collection('incidents').limit(20).stream()
-                cloud_incs = {d.id: {**d.to_dict(), 'id': d.id} for d in inc_docs}
-                
-                # Update our state: Keep local if it's newer/active, otherwise take from cloud
-                for inc_id, c_data in cloud_incs.items():
-                    # If we don't have it, add it
-                    if not any(i['id'] == inc_id for i in STATE["incidents"]):
-                        STATE["incidents"].append(c_data)
-                    else:
-                        # If we have it, only update if local isn't 'Dispatched' (to avoid jumping)
-                        for local_inc in STATE["incidents"]:
-                            if local_inc['id'] == inc_id and local_inc['status'] != 'Dispatched':
-                                local_inc.update(c_data)
-                
+                # Only sync incidents/hospitals to avoid overwriting live local movement
+                inc_docs = db.collection('incidents').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(20).stream()
+                new_incs = [{**d.to_dict(), 'id': d.id} for d in inc_docs]
+                STATE["incidents"] = new_incs
                 STATE["last_cloud_sync"] = time.time()
-            except Exception as e:
-                logger.error(f"Sync Task Error: {e}")
-        time.sleep(10) # Faster sync for better testing
+            except: pass
+        time.sleep(SYNC_INTERVAL)
 
 def movement_loop():
     print("🚑 MOVEMENT LOOP STARTED - NAVIRAKSHA ENGINE ACTIVE")
@@ -169,53 +101,7 @@ def movement_loop():
 threading.Thread(target=cloud_sync_task, daemon=True).start()
 threading.Thread(target=movement_loop, daemon=True).start()
 
-# --- NAVIGATION ENGINE (A* WITH WATER AVOIDANCE) ---
-def get_route(start_pos, end_pos):
-    """
-    Calculates a route that avoids the Thane Creek (water) 
-    and forces the use of Vashi or Airoli bridges.
-    """
-    s_lat, s_lng = start_pos
-    e_lat, e_lng = end_pos
-    
-    # Define Water Boundary (Approximate Thane Creek range)
-    WATER_LAT_RANGE = (19.00, 19.15)
-    WATER_LNG_RANGE = (72.94, 72.98)
-    
-    # Bridges (Gateway nodes)
-    BRIDGES = [
-        (19.063, 72.968), # Vashi Bridge
-        (19.142, 72.991)  # Airoli Bridge
-    ]
-
-    # If start and end are on the same side of the water, use a direct-ish route
-    # Otherwise, route through the nearest bridge
-    crosses_water = False
-    if (s_lng < 72.96 and e_lng > 72.99) or (s_lng > 72.99 and e_lng < 72.96):
-        crosses_water = True
-
-    if not crosses_water:
-        # Simple 3-point road path (simulated street turns)
-        mid_lat = (s_lat + e_lat) / 2
-        return [
-            [s_lat, s_lng],
-            [mid_lat + 0.002, s_lng + 0.002], # Simulated turn
-            [e_lat, e_lng]
-        ]
-    else:
-        # Find nearest bridge
-        bridge = min(BRIDGES, key=lambda b: (abs(b[0]-s_lat) + abs(b[1]-s_lng)))
-        return [
-            [s_lat, s_lng],
-            [bridge[0], bridge[1]], # Force through bridge
-            [e_lat, e_lng]
-        ]
-
 # --- ROUTES ---
-
-# --- START BACKGROUND TASKS ---
-threading.Thread(target=cloud_sync_task, daemon=True).start()
-threading.Thread(target=movement_loop, daemon=True).start()
 
 @app.route('/health')
 def health():
@@ -223,26 +109,10 @@ def health():
 
 @app.route('/ambulances/active')
 def get_ambulances(): 
-    if db:
-        try:
-            docs = db.collection('ambulances').stream()
-            ambs = [{**d.to_dict(), 'id': d.id} for d in docs]
-            if ambs: return jsonify({"ambulances": ambs})
-        except: pass
     return jsonify({"ambulances": STATE["ambulances"]})
 
 @app.route('/incidents/active')
 def get_incidents(): 
-    if db:
-        try:
-            # Get active incidents directly from Firestore
-            docs = db.collection('incidents').limit(20).stream()
-            incs = [{**d.to_dict(), 'id': d.id} for d in docs]
-            # Filter to only active ones in Python (avoids complex query index requirements)
-            active = [i for i in incs if i.get('status') in ['Waiting', 'Dispatched']]
-            if active: return jsonify({"incidents": active})
-        except Exception as e:
-            logger.error(f"Firestore Incident Fetch Error: {e}")
     return jsonify({"incidents": STATE["incidents"]})
 
 @app.route('/hospitals')
@@ -252,9 +122,8 @@ def get_hospitals():
 @app.route('/dispatch', methods=['POST'])
 def dispatch():
     data = request.json
-    # Add tiny jitter to prevent perfect overlap (approx 50-100m)
-    lat = data.get("latitude", 19.0330) + (random.uniform(-0.0005, 0.0005))
-    lng = data.get("longitude", 73.0190) + (random.uniform(-0.0005, 0.0005))
+    lat = data.get("latitude", 19.0330)
+    lng = data.get("longitude", 73.0190)
     new_inc = {
         "id": f"INC-{datetime.now().strftime('%M%S')}",
         "patient_name": data.get("patient_name", "Unknown"),
@@ -266,8 +135,7 @@ def dispatch():
         "location_address": get_neighborhood(lat, lng),
         "status": "Waiting",
         "timestamp": datetime.now(),
-        "prediction": get_ai_recommendation(data.get("incident_type", ""), data.get("severity", ""), lat, lng),
-        "route": [] # Initial empty route
+        "prediction": get_ai_recommendation(data.get("incident_type", ""), data.get("severity", ""))
     }
     STATE["incidents"].insert(0, new_inc)
     if db:
@@ -290,20 +158,11 @@ def update_status(inc_id):
                         amb['status'] = 'responding'
                         amb['assigned_incident'] = inc_id
                         assigned_amb_id = amb['id']
-                        # Calculate A* Road Route
-                        inc['route'] = get_route((amb['latitude'], amb['longitude']), (inc['latitude'], inc['longitude']))
                         break
     if db:
         def update():
             try:
-                # Find the specific incident object to get the calculated route
-                target_inc = next((i for i in STATE["incidents"] if i['id'] == inc_id), None)
-                update_data = {'status': status}
-                if target_inc and 'route' in target_inc:
-                    update_data['route'] = target_inc['route']
-                
-                db.collection('incidents').document(inc_id).update(update_data)
-                
+                db.collection('incidents').document(inc_id).update({'status': status})
                 if assigned_amb_id:
                     db.collection('ambulances').document(assigned_amb_id).update({'status': 'responding', 'assigned_incident': inc_id})
             except: pass
