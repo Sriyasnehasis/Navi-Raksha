@@ -1,13 +1,13 @@
 "use client";
 export const dynamic = "force-dynamic";
 import { useState, useEffect, useCallback } from "react";
-import dynamic from "next/dynamic";
+import nextDynamic from "next/dynamic";
 import { Shield, AlertCircle, MapPin, Navigation, Send, Heart, Activity, Zap, CheckCircle, User, Phone, Clock } from "lucide-react";
 import Link from "next/link";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
 
-const LiveMap = dynamic(() => import("../../components/LiveMap"), {
+const LiveMap = nextDynamic(() => import("../../components/LiveMap"), {
   ssr: false,
   loading: () => (
     <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#f1f5f9", color: "#94a3b8" }}>
