@@ -16,9 +16,17 @@ jobs:
         with:
           node-version: 24
       - name: Install Dependencies
-        run: cd web && npm install
+        run: |
+          cd web
+          npm install
       - name: Build
-        run: cd web && npx next build
+        run: |
+          cd web
+          npx next build
+      - name: Diagnostic - List Build Output
+        run: |
+          echo "Checking web/out directory:"
+          ls -R web/out || echo "web/out NOT FOUND"
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
