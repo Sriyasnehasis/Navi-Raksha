@@ -93,13 +93,31 @@ def cloud_sync_task():
     while True:
         if db:
             try:
-                # Only sync incidents/hospitals to avoid overwriting live local movement
+                # Sync hospitals every time to get bed updates
+                h_docs = db.collection('hospitals').stream()
+                h_list = [{**d.to_dict(), 'id': d.id} for d in h_docs]
+                if h_list:
+                    STATE["hospitals"] = h_list
+
+                # Merge incidents: Pull from cloud but keep local 'Responding' state
                 inc_docs = db.collection('incidents').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(20).stream()
-                new_incs = [{**d.to_dict(), 'id': d.id} for d in inc_docs]
-                STATE["incidents"] = new_incs
+                cloud_incs = {d.id: {**d.to_dict(), 'id': d.id} for d in inc_docs}
+                
+                # Update our state: Keep local if it's newer/active, otherwise take from cloud
+                for inc_id, c_data in cloud_incs.items():
+                    # If we don't have it, add it
+                    if not any(i['id'] == inc_id for i in STATE["incidents"]):
+                        STATE["incidents"].append(c_data)
+                    else:
+                        # If we have it, only update if local isn't 'Dispatched' (to avoid jumping)
+                        for local_inc in STATE["incidents"]:
+                            if local_inc['id'] == inc_id and local_inc['status'] != 'Dispatched':
+                                local_inc.update(c_data)
+                
                 STATE["last_cloud_sync"] = time.time()
-            except: pass
-        time.sleep(SYNC_INTERVAL)
+            except Exception as e:
+                logger.error(f"Sync Task Error: {e}")
+        time.sleep(10) # Faster sync for better testing
 
 def movement_loop():
     print("🚑 MOVEMENT LOOP STARTED - NAVIRAKSHA ENGINE ACTIVE")
