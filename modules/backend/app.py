@@ -84,7 +84,7 @@ def get_ai_recommendation(incident_type, severity, lat, lng):
     return {
         'type': rec_type, 
         'eta': f"{eta_start} - {eta_end} min", 
-        'conf': f"{90 + round(math.random(), 2)*8}%",
+        'conf': f"{90 + round(random.random(), 2)*8}%",
         'unit': closest['id']
     }
 
