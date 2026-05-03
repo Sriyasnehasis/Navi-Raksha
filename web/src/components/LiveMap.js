@@ -78,19 +78,27 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
             <React.Fragment key={`amb-group-${amb.id}-${amb.status}`}>
               {isResponding && targetInc && (
                 <>
-                  {/* Glowing Path Effect */}
+                  {/* Glowing Path Effect - Road-aware A* path if available */}
                   <Polyline 
-                    positions={[pos, [targetInc.latitude, targetInc.longitude]]} 
+                    positions={targetInc.route && targetInc.route.length > 0 
+                      ? targetInc.route 
+                      : [pos, [targetInc.latitude, targetInc.longitude]]
+                    } 
                     color="#4F46E5" 
                     weight={6} 
                     opacity={0.3}
+                    smoothFactor={1}
                   />
                   <Polyline 
-                    positions={[pos, [targetInc.latitude, targetInc.longitude]]} 
+                    positions={targetInc.route && targetInc.route.length > 0 
+                      ? targetInc.route 
+                      : [pos, [targetInc.latitude, targetInc.longitude]]
+                    } 
                     color="#6366F1" 
                     dashArray="10, 15" 
                     weight={3} 
                     opacity={0.8}
+                    smoothFactor={1}
                   />
                 </>
               )}
