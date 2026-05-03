@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Shield, AlertCircle, MapPin, Navigation, Send, Heart, Activity, Zap, CheckCircle, User, Phone, Clock } from "lucide-react";
