@@ -1,13 +1,13 @@
 # 🚑 NaviRaksha — RF-Based Emergency Medical Response System
 
 > **Intelligent Ambulance Dispatch & ETA Prediction for Navi Mumbai**
-> 
-> Amity University Mumbai | Final Year Research Project | 2026
 
-[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
-[![Flask](https://img.shields.io/badge/Flask-3.1-green)](https://flask.palletsprojects.com)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.25-red)](https://streamlit.io)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+### 🌐 Live Production
+| Service | Status | URL |
+| :--- | :--- | :--- |
+| **Dispatcher Intelligence Panel** | ![Firebase](https://img.shields.io/badge/Firebase-Hosting-FFCA28?style=flat&logo=firebase&logoColor=white) | [https://navi-raksha.web.app/dispatcher](https://navi-raksha.web.app/dispatcher) |
+| **Citizen SOS Portal** | ![Firebase](https://img.shields.io/badge/Firebase-SOS_Portal-FFCA28?style=flat&logo=firebase&logoColor=white) | [https://navi-raksha.web.app/citizen](https://navi-raksha.web.app/citizen) |
+| **Backend API Engine** | ![Render](https://img.shields.io/badge/Render-Backend-46E3B7?style=flat&logo=render&logoColor=white) | [https://navi-raksha-backend.onrender.com](https://navi-raksha-backend.onrender.com) |
 
 ---
 
@@ -17,31 +17,32 @@ NaviRaksha is an AI-powered Emergency Medical Services (EMS) platform that optim
 
 - **Machine Learning** — ETA prediction using Random Forest, LSTM, and GNN models
 - **A\* Routing** — Traffic-aware pathfinding on real OSM road networks
+- **Next.js Frontend** — Modern, responsive dashboard with real-time Firestore sync
 - **Smart Dispatch** — Severity-based ambulance type classification (ALS/BLS/Mini/Bike)
 - **Hospital Ranking** — Dynamic ranking by ETA + bed availability
-- **Real-time Dashboard** — Live fleet tracking with interactive maps
+- **Real-time Engine** — Live fleet tracking with automated movement simulation
 
 ## 🏗️ Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                    STREAMLIT FRONTEND                         │
+│                    NEXT.JS FRONTEND (LIVE)                   │
 │  ┌──────────────┐  ┌───────────────┐  ┌──────────────────┐  │
-│  │ Citizen      │  │ Dispatcher    │  │ Simulation       │  │
-│  │ Tracker      │  │ Control Room  │  │ Engine           │  │
+│  │ Citizen SOS  │  │ Dispatcher    │  │ Simulation       │  │
+│  │ Portal       │  │ Intel Panel   │  │ Control          │  │
 │  └──────┬───────┘  └──────┬────────┘  └──────┬───────────┘  │
 │         └──────────────────┼─────────────────┘              │
-│                            │ REST API                        │
+│                            │ REST API + Firestore Sync      │
 ├────────────────────────────┼─────────────────────────────────┤
-│                    FLASK BACKEND API                          │
+│                    FLASK BACKEND ENGINE                       │
 │  ┌──────────┐  ┌──────────┐  ┌───────────┐  ┌───────────┐  │
-│  │ /predict  │  │ /dispatch│  │ /ambulances│  │ /hospitals│  │
-│  │ -eta      │  │          │  │ /active    │  │           │  │
+│  │ /predict  │  │ /dispatch│  │ Movement  │  │ /hospitals│  │
+│  │ -eta      │  │          │  │ Loop      │  │           │  │
 │  └────┬─────┘  └────┬─────┘  └─────┬─────┘  └─────┬─────┘  │
 │       │              │              │              │         │
 │  ┌────┴─────┐  ┌────┴──────┐  ┌────┴──────┐               │
-│  │ RF Model │  │ Dispatch  │  │ SQLAlchemy │               │
-│  │ (ML)     │  │ Classifier│  │ Database   │               │
+│  │ RF Model │  │ Dispatch  │  │ Cloud Sync│               │
+│  │ (ML)     │  │ Classifier│  │ Firestore │               │
 │  └──────────┘  └───────────┘  └───────────┘               │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -116,20 +117,17 @@ docker-compose up --build
 ```
 navi-raksha/
 ├── modules/
-│   ├── backend/          # Flask API (app.py, models.py, services.py)
-│   ├── routing/          # A* router, dispatch classifier, hospital ranker
+│   ├── backend/          # Flask API Engine (Render)
+│   ├── routing/          # A* router, dispatch classifier
 │   └── ml/               # Model loading utilities
-├── ui/                   # Streamlit dashboard (3 pages)
+├── web/                  # Next.js Application (Firebase)
 ├── models/trained/       # RF, LSTM, GNN model files
 ├── data/
-│   ├── processed/        # Train/Val/Test CSVs (8K/1K/1K)
-│   └── raw/              # OSM graph, hospitals CSV, key locations
-├── notebooks/            # 9 training notebooks
-├── tests/                # Comprehensive test suite (30+ tests)
-├── docs/                 # Team guides, API contracts, plans
-├── Dockerfile.backend    # Docker for API
-├── Dockerfile.frontend   # Docker for Streamlit
-└── docker-compose.yml    # Full stack deployment
+│   ├── processed/        # 10K realistic EMS trip samples
+│   └── raw/              # OSM road graph, Navi Mumbai sectors
+├── tests/                # Automated test suite (Pytest)
+├── Dockerfile.backend    # Containerized API
+└── render.yaml           # Infrastructure-as-Code for Render
 ```
 
 
