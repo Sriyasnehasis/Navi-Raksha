@@ -101,19 +101,6 @@ def movement_loop():
 threading.Thread(target=cloud_sync_task, daemon=True).start()
 threading.Thread(target=movement_loop, daemon=True).start()
 
-# --- GEOGRAPHIC INTELLIGENCE ---
-BRIDGES = [
-    (19.0433, 72.9833), # Vashi Bridge
-    (19.1411, 72.9855)  # Airoli Bridge
-]
-
-def get_route(s_lat, s_lng, e_lat, e_lng):
-    # If same side of creek, direct line. If crossing creek, use bridge.
-    if (s_lng < 72.985 and e_lng < 72.985) or (s_lng > 72.985 and e_lng > 72.985):
-        return [[s_lat, s_lng], [e_lat, e_lng]]
-    bridge = min(BRIDGES, key=lambda b: (abs(b[0]-s_lat) + abs(b[1]-s_lng)))
-    return [[s_lat, s_lng], [bridge[0], bridge[1]], [e_lat, e_lng]]
-
 # --- ROUTES ---
 
 @app.route('/health')
@@ -152,16 +139,16 @@ def dispatch():
     }
     STATE["incidents"].insert(0, new_inc)
     if db:
-        try: db.collection('incidents').document(new_inc['id']).set(new_inc)
-        except: pass
+        def save():
+            try: db.collection('incidents').document(new_inc['id']).set(new_inc)
+            except: pass
+        threading.Thread(target=save).start()
     return jsonify(new_inc)
 
 @app.route('/incidents/<inc_id>/status', methods=['PUT'])
 def update_status(inc_id):
     status = request.json.get('status', 'Dispatched')
     assigned_amb_id = None
-    route_path = None
-    
     for inc in STATE["incidents"]:
         if inc['id'] == inc_id:
             inc['status'] = status
@@ -171,16 +158,16 @@ def update_status(inc_id):
                         amb['status'] = 'responding'
                         amb['assigned_incident'] = inc_id
                         assigned_amb_id = amb['id']
-                        route_path = get_route(amb['latitude'], amb['longitude'], inc['latitude'], inc['longitude'])
-                        inc['path'] = route_path
                         break
     if db:
-        try:
-            db.collection('incidents').document(inc_id).update({'status': status, 'path': route_path})
-            if assigned_amb_id:
-                db.collection('ambulances').document(assigned_amb_id).update({'status': 'responding', 'assigned_incident': inc_id})
-        except: pass
-    return jsonify({"status": "updated", "path": route_path})
+        def update():
+            try:
+                db.collection('incidents').document(inc_id).update({'status': status})
+                if assigned_amb_id:
+                    db.collection('ambulances').document(assigned_amb_id).update({'status': 'responding', 'assigned_incident': inc_id})
+            except: pass
+        threading.Thread(target=update).start()
+    return jsonify({"status": "updated"})
 
 @app.route('/admin/cleanup', methods=['POST'])
 def cleanup():

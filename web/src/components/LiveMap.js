@@ -83,9 +83,9 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
         />
         <MapUpdater center={center} />
 
-        {/* Pulsing Emergency Beacon */}
-        <CircleMarker center={center} radius={10} color="#6366f1" fillColor="#6366f1" fillOpacity={0.4} weight={2}>
-            <Popup>📍 AI Command Center</Popup>
+        {/* Dynamic Data Layers */}
+        <CircleMarker center={center} radius={10} color="#3b82f6" fillColor="#3b82f6" fillOpacity={0.8} weight={3}>
+          <Popup>📍 Command Center</Popup>
         </CircleMarker>
 
         {ambulances.map(amb => {
@@ -97,20 +97,27 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
             <React.Fragment key={`amb-group-${amb.id}-${amb.status}`}>
               {isResponding && targetInc && (
                 <>
+                  {/* Glowing Path Effect - Road-aware A* path if available */}
                   <Polyline 
-                    positions={targetInc.path || [[amb.latitude, amb.longitude], [targetInc.latitude, targetInc.longitude]]}
-                    pathOptions={{ color: '#6366f1', weight: 6, opacity: 0.2, smoothFactor: 1 }}
+                    positions={targetInc.route && targetInc.route.length > 0 
+                      ? targetInc.route 
+                      : [pos, [targetInc.latitude, targetInc.longitude]]
+                    } 
+                    color="#4F46E5" 
+                    weight={6} 
+                    opacity={0.3}
+                    smoothFactor={1}
                   />
                   <Polyline 
-                    positions={targetInc.path || [[amb.latitude, amb.longitude], [targetInc.latitude, targetInc.longitude]]}
-                    pathOptions={{ 
-                      color: '#6366f1', 
-                      weight: 3, 
-                      dashArray: '10, 15', 
-                      opacity: 0.8, 
-                      smoothFactor: 1,
-                      className: 'glowing-path'
-                    }}
+                    positions={targetInc.route && targetInc.route.length > 0 
+                      ? targetInc.route 
+                      : [pos, [targetInc.latitude, targetInc.longitude]]
+                    } 
+                    color="#6366F1" 
+                    dashArray="10, 15" 
+                    weight={3} 
+                    opacity={0.8}
+                    smoothFactor={1}
                   />
                 </>
               )}
