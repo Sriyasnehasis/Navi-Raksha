@@ -105,7 +105,7 @@ def cloud_sync_task():
                     STATE["hospitals"] = h_list
 
                 # Merge incidents: Pull from cloud but keep local 'Responding' state
-                inc_docs = db.collection('incidents').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(20).stream()
+                inc_docs = db.collection('incidents').limit(20).stream()
                 cloud_incs = {d.id: {**d.to_dict(), 'id': d.id} for d in inc_docs}
                 
                 # Update our state: Keep local if it's newer/active, otherwise take from cloud
@@ -235,10 +235,12 @@ def get_ambulances():
 def get_incidents(): 
     if db:
         try:
-            # Get only Waiting or Dispatched incidents
-            docs = db.collection('incidents').where('status', 'in', ['Waiting', 'Dispatched']).order_by('timestamp', direction=firestore.Query.DESCENDING).limit(10).stream()
+            # Get active incidents directly from Firestore
+            docs = db.collection('incidents').limit(20).stream()
             incs = [{**d.to_dict(), 'id': d.id} for d in docs]
-            if incs: return jsonify({"incidents": incs})
+            # Filter to only active ones in Python (avoids complex query index requirements)
+            active = [i for i in incs if i.get('status') in ['Waiting', 'Dispatched']]
+            if active: return jsonify({"incidents": active})
         except Exception as e:
             logger.error(f"Firestore Incident Fetch Error: {e}")
     return jsonify({"incidents": STATE["incidents"]})
