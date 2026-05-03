@@ -1,0 +1,309 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/chunks/10zufme99ygpt.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/0le6gkwwretfl.js"/><script src="/_next/static/chunks/0~h5uw8rauzdt.js" async=""></script><script src="/_next/static/chunks/1819tldlsxpm-.js" async=""></script><script src="/_next/static/chunks/0u83jkz7d-bdi.js" async=""></script><script src="/_next/static/chunks/0d..vmcws0e7w.js" async=""></script><script src="/_next/static/chunks/turbopack-0dmf6dtpeq_y-.js" async=""></script><script src="/_next/static/chunks/10af4o8ctbt0y.js" async=""></script><script src="/_next/static/chunks/11isq90ukgr7-.js" async=""></script><script src="/_next/static/chunks/0uyytibw0l7nx.js" async=""></script><title>NaviRaksha — Emergency Intelligence</title><meta name="description" content="AI-Powered Emergency Response for Navi Mumbai"/><link rel="icon" href="/favicon.ico?favicon.0x3dzn~oxb6tn.ico" sizes="256x256" type="image/x-icon"/><script src="/_next/static/chunks/03~yq9q893hmn.js" noModule=""></script></head><body><div hidden=""><!--$--><!--/$--></div><style>
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+          font-family: 'DM Sans', sans-serif;
+          background: #F7F6F2;
+        }
+
+        .gateway-root {
+          min-height: 100vh;
+          background-color: #F7F6F2;
+          background-image:
+            radial-gradient(circle at 85% 10%, rgba(220,38,38,0.07) 0%, transparent 45%),
+            radial-gradient(circle at 10% 90%, rgba(15,28,77,0.07) 0%, transparent 45%),
+            radial-gradient(rgba(20,35,80,0.04) 1px, transparent 1px);
+          background-size: auto, auto, 40px 40px;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+        }
+
+        /* ─── HEADER ─── */
+        .gw-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 20px 48px;
+          background: rgba(247,246,242,0.85);
+          backdrop-filter: blur(12px);
+          border-bottom: 1px solid rgba(20,35,80,0.06);
+          position: sticky;
+          top: 0;
+          z-index: 100;
+        }
+
+        .gw-logo {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .gw-logo-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #DC2626, #B91C1C);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 22px;
+          box-shadow: 0 4px 14px rgba(220,38,38,0.3);
+        }
+        .gw-logo-text {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-weight: 800;
+          font-size: 22px;
+          color: #0F1C4D;
+          letter-spacing: -0.5px;
+        }
+        .gw-logo-text span { color: #DC2626; }
+        .gw-logo-sub {
+          font-size: 10px;
+          color: #9CA3AF;
+          font-weight: 600;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          margin-top: 1px;
+        }
+
+        .gw-nav {
+          display: flex;
+          gap: 32px;
+          align-items: center;
+        }
+        .gw-nav a {
+          font-size: 14px;
+          font-weight: 600;
+          color: #4B5563;
+          text-decoration: none;
+          transition: color 0.2s;
+        }
+        .gw-nav a:hover { color: #0F1C4D; }
+
+        .status-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 6px 14px;
+          background: #DCFCE7;
+          border: 1px solid #86EFAC;
+          border-radius: 40px;
+          font-size: 11px;
+          font-weight: 700;
+          color: #15803D;
+          letter-spacing: 0.5px;
+        }
+        .status-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #16A34A;
+          box-shadow: 0 0 0 3px rgba(22,163,74,0.2);
+          animation: blink 2s infinite;
+        }
+        @keyframes blink {
+          0%,100%{opacity:1} 50%{opacity:0.3}
+        }
+
+        /* ─── HERO ─── */
+        .gw-hero {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 72px 24px 40px;
+          text-align: center;
+        }
+
+        .gw-eyebrow {
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 3px;
+          color: #9CA3AF;
+          text-transform: uppercase;
+          margin-bottom: 18px;
+        }
+
+        .gw-title {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-weight: 800;
+          font-size: clamp(52px, 7vw, 80px);
+          line-height: 1;
+          letter-spacing: -1px;
+          color: #0F1C4D;
+          margin-bottom: 16px;
+        }
+        .gw-title span { color: #DC2626; }
+
+        .gw-subtitle {
+          font-size: 16px;
+          color: #6B7280;
+          font-weight: 400;
+          max-width: 480px;
+          line-height: 1.7;
+          margin-bottom: 52px;
+        }
+
+        /* ─── CARDS ─── */
+        .gw-cards {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+          gap: 28px;
+          width: 100%;
+          max-width: 860px;
+          margin-bottom: 48px;
+        }
+
+        .gw-card {
+          background: #ffffff;
+          border-radius: 20px;
+          border: 1px solid #E5E7EB;
+          overflow: hidden;
+          cursor: pointer;
+          transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s cubic-bezier(0.4,0,0.2,1);
+          box-shadow: 0 2px 8px rgba(15,28,77,0.04);
+        }
+        .gw-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 20px 40px rgba(15,28,77,0.1);
+        }
+
+        .gw-card-accent {
+          height: 5px;
+          width: 100%;
+        }
+        .gw-card-accent.red {
+          background: linear-gradient(90deg, #DC2626, #EF4444);
+        }
+        .gw-card-accent.navy {
+          background: linear-gradient(90deg, #1E3A8A, #2563EB);
+        }
+
+        .gw-card-body {
+          padding: 36px 36px 32px;
+        }
+
+        .gw-card-icon {
+          width: 56px;
+          height: 56px;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 26px;
+          margin-bottom: 24px;
+        }
+        .gw-card-icon.red { background: #FEF2F2; }
+        .gw-card-icon.blue { background: #EFF6FF; }
+
+        .gw-card-title {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-weight: 800;
+          font-size: 28px;
+          letter-spacing: -0.5px;
+          margin-bottom: 10px;
+        }
+        .gw-card-title.red { color: #7F1D1D; }
+        .gw-card-title.blue { color: #1E3A8A; }
+
+        .gw-card-desc {
+          font-size: 14px;
+          color: #6B7280;
+          line-height: 1.7;
+          margin-bottom: 28px;
+        }
+
+        .gw-card-cta {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 22px;
+          border-radius: 10px;
+          border: none;
+          cursor: pointer;
+          font-weight: 700;
+          font-size: 13px;
+          color: #ffffff;
+          letter-spacing: 0.5px;
+          transition: filter 0.2s, transform 0.2s;
+          margin-bottom: 24px;
+        }
+        .gw-card-cta:hover { filter: brightness(1.1); transform: scale(1.02); }
+        .gw-card-cta.red { background: #DC2626; box-shadow: 0 4px 14px rgba(220,38,38,0.3); }
+        .gw-card-cta.navy { background: #1E3A8A; box-shadow: 0 4px 14px rgba(30,58,138,0.3); }
+
+        .gw-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .gw-tag {
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 11px;
+          font-weight: 700;
+        }
+        .gw-tag.red {
+          background: #FEF2F2;
+          border: 1px solid #FECACA;
+          color: #991B1B;
+        }
+        .gw-tag.blue {
+          background: #EFF6FF;
+          border: 1px solid #BFDBFE;
+          color: #1D4ED8;
+        }
+
+        /* ─── STATS BAR ─── */
+        .gw-stats {
+          width: 100%;
+          max-width: 860px;
+          background: #0F1C4D;
+          border-radius: 16px;
+          padding: 20px 32px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .gw-stat {
+          text-align: center;
+          flex: 1;
+        }
+        .gw-stat-label {
+          font-size: 9px;
+          font-weight: 600;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.35);
+          margin-bottom: 4px;
+        }
+        .gw-stat-value {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-weight: 800;
+          font-size: 24px;
+          color: #ffffff;
+          letter-spacing: -0.5px;
+        }
+        .gw-stat-value.green { color: #4ADE80; }
+        .gw-stat-value.amber { color: #FCD34D; }
+
+        .gw-stat-divider {
+          width: 1px;
+          height: 36px;
+          background: rgba(255,255,255,0.1);
+        }
+
+        /* ─── FOOTER ─── */
+        .gw-footer {
+          text-align: center;
+          padding: 24px;
+          font-size: 11px;
+          color: #D1D5DB;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          font-weight: 600;
+        }
+      </style><div class="gateway-root"><header class="gw-header"><div class="gw-logo"><div class="gw-logo-icon">🚑</div><div><div class="gw-logo-text">Navi<span>Raksha</span></div><div class="gw-logo-sub">Emergency AI</div></div></div><nav class="gw-nav"><a href="/citizen">Citizen Portal</a><a href="/dispatcher">Command Center</a><a href="/simulation">Simulation</a></nav><div class="status-pill"><span class="status-dot"></span>Navi Mumbai Grid Active</div></header><main class="gw-hero"><p class="gw-eyebrow">▸ AI-Powered Emergency Intelligence — Navi Mumbai</p><h1 class="gw-title">Navi<span>Raksha</span></h1><p class="gw-subtitle">Next-generation ambulance dispatch powered by a Random Forest AI model — coordinating Navi Mumbai&#x27;s emergency response grid in real time.</p><div class="gw-cards"><div class="gw-card"><div class="gw-card-accent red"></div><div class="gw-card-body"><div class="gw-card-icon red">🆘</div><h2 class="gw-card-title red">Citizen Portal</h2><p class="gw-card-desc">Report emergencies instantly. Share your location and injury type — our AI dispatches the right ambulance in seconds.</p><button class="gw-card-cta red">ENTER SYSTEM →</button><div class="gw-tags"><span class="gw-tag red">SOS Alert</span><span class="gw-tag red">Live Location</span><span class="gw-tag red">AI ETA</span></div></div></div><div class="gw-card"><div class="gw-card-accent navy"></div><div class="gw-card-body"><div class="gw-card-icon blue">🛡️</div><h2 class="gw-card-title blue">Command Center</h2><p class="gw-card-desc">Authorized personnel only. Monitor fleet, validate ML model output, and coordinate Navi Mumbai&#x27;s response grid.</p><button class="gw-card-cta navy">ADMIN ACCESS →</button><div class="gw-tags"><span class="gw-tag blue">RF Model</span><span class="gw-tag blue">Fleet Control</span><span class="gw-tag blue">ML Dispatch</span></div></div></div></div></main><footer class="gw-footer">© 2026 NaviRaksha · Navi Mumbai Emergency AI Grid</footer></div><!--$--><!--/$--><script src="/_next/static/chunks/0le6gkwwretfl.js" id="_R_" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,"1:\"$Sreact.fragment\"\n2:I[55952,[\"/_next/static/chunks/10af4o8ctbt0y.js\",\"/_next/static/chunks/11isq90ukgr7-.js\"],\"default\"]\n3:I[86263,[\"/_next/static/chunks/10af4o8ctbt0y.js\",\"/_next/static/chunks/11isq90ukgr7-.js\"],\"default\"]\n4:I[71252,[\"/_next/static/chunks/10af4o8ctbt0y.js\",\"/_next/static/chunks/11isq90ukgr7-.js\"],\"ClientPageRoot\"]\n5:I[42304,[\"/_next/static/chunks/10af4o8ctbt0y.js\",\"/_next/static/chunks/11isq90ukgr7-.js\",\"/_next/static/chunks/0uyytibw0l7nx.js\"],\"default\"]\n8:I[84407,[\"/_next/static/chunks/10af4o8ctbt0y.js\",\"/_next/static/chunks/11isq90ukgr7-.js\"],\"OutletBoundary\"]\n9:\"$Sreact.suspense\"\nb:I[84407,[\"/_next/static/chunks/10af4o8ctbt0y.js\",\"/_next/static/chunks/11isq90ukgr7-.js\"],\"ViewportBoundary\"]\nd:I[84407,[\"/_next/static/chunks/10af4o8ctbt0y.js\",\"/_next/static/chunks/11isq90ukgr7-.js\"],\"MetadataBoundary\"]\nf:I[38345,[\"/_next/static/chunks/10af4o8ctbt0y.js\",\"/_next/static/chunks/11isq90ukgr7-.js\"],\"default\",1]\n:HL[\"/_next/static/chunks/10zufme99ygpt.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"0:{\"P\":null,\"c\":[\"\",\"\"],\"q\":\"\",\"i\":false,\"f\":[[[\"\",{\"children\":[\"__PAGE__\",{}]},\"$undefined\",\"$undefined\",16],[[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/chunks/10zufme99ygpt.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-0\",{\"src\":\"/_next/static/chunks/10af4o8ctbt0y.js\",\"async\":true,\"nonce\":\"$undefined\"}],[\"$\",\"script\",\"script-1\",{\"src\":\"/_next/static/chunks/11isq90ukgr7-.js\",\"async\":true,\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"en\",\"children\":[\"$\",\"body\",null,{\"suppressHydrationWarning\":true,\"children\":[\"$\",\"$L2\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L3\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}]}]]}],{\"children\":[[\"$\",\"$1\",\"c\",{\"children\":[[\"$\",\"$L4\",null,{\"Component\":\"$5\",\"serverProvidedParams\":{\"searchParams\":{},\"params\":{},\"promises\":[\"$@6\",\"$@7\"]}}],[[\"$\",\"script\",\"script-0\",{\"src\":\"/_next/static/chunks/0uyytibw0l7nx.js\",\"async\":true,\"nonce\":\"$undefined\"}]],[\"$\",\"$L8\",null,{\"children\":[\"$\",\"$9\",null,{\"name\":\"Next.MetadataOutlet\",\"children\":\"$@a\"}]}]]}],{},null,false,null]},null,false,null],[\"$\",\"$1\",\"h\",{\"children\":[null,[\"$\",\"$Lb\",null,{\"children\":\"$Lc\"}],[\"$\",\"div\",null,{\"hidden\":true,\"children\":[\"$\",\"$Ld\",null,{\"children\":[\"$\",\"$9\",null,{\"name\":\"Next.Metadata\",\"children\":\"$Le\"}]}]}],null]}],false]],\"m\":\"$undefined\",\"G\":[\"$f\",[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/chunks/10zufme99ygpt.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]]],\"S\":true,\"h\":null,\"s\":\"$undefined\",\"l\":\"$undefined\",\"p\":\"$undefined\",\"d\":\"$undefined\",\"b\":\"N-dGlyN2KCr5m0bGZK8h6\"}\n"])</script><script>self.__next_f.push([1,"6:{}\n7:\"$0:f:0:1:1:children:0:props:children:0:props:serverProvidedParams:params\"\n"])</script><script>self.__next_f.push([1,"c:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\n"])</script><script>self.__next_f.push([1,"10:I[56723,[\"/_next/static/chunks/10af4o8ctbt0y.js\",\"/_next/static/chunks/11isq90ukgr7-.js\"],\"IconMark\"]\na:null\ne:[[\"$\",\"title\",\"0\",{\"children\":\"NaviRaksha — Emergency Intelligence\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"AI-Powered Emergency Response for Navi Mumbai\"}],[\"$\",\"link\",\"2\",{\"rel\":\"icon\",\"href\":\"/favicon.ico?favicon.0x3dzn~oxb6tn.ico\",\"sizes\":\"256x256\",\"type\":\"image/x-icon\"}],[\"$\",\"$L10\",\"3\",{}]]\n"])</script></body></html>

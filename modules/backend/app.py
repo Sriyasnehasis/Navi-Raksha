@@ -57,6 +57,7 @@ def cloud_sync_task():
         time.sleep(SYNC_INTERVAL)
 
 def movement_loop():
+    print("🚑 MOVEMENT LOOP STARTED - NAVIRAKSHA ENGINE ACTIVE")
     while True:
         for amb in STATE["ambulances"]:
             if amb['status'] == 'responding' and amb.get('assigned_incident'):
@@ -82,10 +83,20 @@ def movement_loop():
                                 except: pass
                             threading.Thread(target=sync_resolve, args=(target['id'],)).start()
                     else:
-                        # Visual Glide: Move 3% per second
-                        amb['latitude'] += dx * 0.03
-                        amb['longitude'] += dy * 0.03
-        time.sleep(1)
+                        # Visual Glide: Move 5% per second for better responsiveness
+                        amb['latitude'] += dx * 0.05
+                        amb['longitude'] += dy * 0.05
+                        
+                        # SYNC TO CLOUD: Push new position so frontend map moves
+                        if db:
+                            try:
+                                # We use a background thread for firestore update to keep movement loop fast
+                                def sync_pos(a_id, lat, lng):
+                                    try: db.collection('ambulances').document(a_id).update({'latitude': lat, 'longitude': lng})
+                                    except: pass
+                                threading.Thread(target=sync_pos, args=(amb['id'], amb['latitude'], amb['longitude'])).start()
+                            except: pass
+        time.sleep(2) # Balanced interval for Render performance
 
 threading.Thread(target=cloud_sync_task, daemon=True).start()
 threading.Thread(target=movement_loop, daemon=True).start()

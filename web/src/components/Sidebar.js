@@ -11,10 +11,12 @@ export default function Sidebar() {
   const [hospitals, setHospitals] = useState([]);
   const pathname = usePathname();
 
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
+
   useEffect(() => {
     const checkSync = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/incidents/active");
+        const res = await fetch(`${backendUrl}/incidents/active`);
         const iData = await res.json();
         
         if (iData.incidents?.length > 0) {
@@ -31,7 +33,7 @@ export default function Sidebar() {
 
       // Hospital Sync from DB
       try {
-        const hRes = await fetch("http://127.0.0.1:8000/hospitals");
+        const hRes = await fetch(`${backendUrl}/hospitals`);
         const hData = await hRes.json();
         setHospitals(hData.hospitals || []);
       } catch (e) {}
@@ -44,7 +46,7 @@ export default function Sidebar() {
       window.removeEventListener('storage', checkSync);
       clearInterval(interval);
     };
-  }, []);
+  }, [backendUrl]);
 
   const handleContact = () => {
     if (citizenPhone) {
@@ -52,6 +54,10 @@ export default function Sidebar() {
     } else {
       alert("No phone number available for this citizen.");
     }
+  };
+
+  const handleAction = (type) => {
+    alert(`${type} module is being initialized for production.`);
   };
 
   const isActive = (path) => pathname === path;
@@ -136,8 +142,8 @@ export default function Sidebar() {
 
       {/* FOOTER ACTIONS */}
       <div style={styles.footer}>
-        <button style={styles.footerBtn}><Settings size={16} /> Settings</button>
-        <button style={styles.footerBtn}><LogOut size={16} /> Logout</button>
+        <button style={styles.footerBtn} onClick={() => handleAction('Settings')}><Settings size={16} /> Settings</button>
+        <button style={styles.footerBtn} onClick={() => handleAction('Logout')}><LogOut size={16} /> Logout</button>
       </div>
     </div>
   );
