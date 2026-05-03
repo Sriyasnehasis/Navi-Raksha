@@ -15,17 +15,13 @@ export default function Sidebar() {
 
   useEffect(() => {
     const checkSync = async () => {
-      let activeIncidents = [];
-      
-      // 1. Fetch Incidents
       try {
         const res = await fetch(`${backendUrl}/incidents/active`);
         const iData = await res.json();
-        activeIncidents = iData.incidents || [];
         
-        if (activeIncidents.length > 0) {
-          setCitizenName(activeIncidents[0].patient_name || "Active Signal");
-          setCitizenPhone(activeIncidents[0].phone || "");
+        if (iData.incidents?.length > 0) {
+          setCitizenName(iData.incidents[0].patient_name || "Active Signal");
+          setCitizenPhone(iData.incidents[0].phone || "");
         } else {
           setCitizenName("No Active SOS Signal");
           setCitizenPhone("");
@@ -35,25 +31,27 @@ export default function Sidebar() {
         setCitizenName("Sync Offline");
       }
 
-      // 2. Fetch & Sort Hospitals
+      // Hospital Sync from DB with proximity sorting
       try {
         const hRes = await fetch(`${backendUrl}/hospitals`);
         const hData = await hRes.json();
         let rawHospitals = hData.hospitals || [];
 
-        if (activeIncidents.length > 0) {
-          const cLat = activeIncidents[0].latitude;
-          const cLng = activeIncidents[0].longitude;
+        // If there's an active citizen, sort hospitals by distance
+        if (iData.incidents?.length > 0) {
+          const cLat = iData.incidents[0].latitude;
+          const cLng = iData.incidents[0].longitude;
 
           rawHospitals = rawHospitals.map(h => {
+            // Simple distance approximation
             const dist = Math.sqrt(
               Math.pow(h.latitude - cLat, 2) + Math.pow(h.longitude - cLng, 2)
-            ) * 111;
+            ) * 111; // 1 degree ~ 111km
             return { ...h, distance: dist };
           }).sort((a, b) => a.distance - b.distance);
         }
 
-        setHospitals(rawHospitals.slice(0, 5));
+        setHospitals(rawHospitals.slice(0, 5)); // Show top 5 nearest
       } catch (e) {
         console.error("Hospital Fetch Error:", e);
       }
