@@ -51,9 +51,9 @@ navi_env/
 .ipynb_checkpoints
 
 # Data files
-//data/raw/*.pkl
+data/raw/*.pkl
 data/raw/*.geojson
-data/raw/*.csv
+# data/raw/*.csv (Allowing CSVs for production logic)
 models/trained/*.pt
 models/trained/*.pkl
 models/checkpoints/*.pt

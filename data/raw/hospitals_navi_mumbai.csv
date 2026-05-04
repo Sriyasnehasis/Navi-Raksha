@@ -1,0 +1,18 @@
+id,name,lat,lon,beds,available_beds,emergency_beds,icu_beds,has_trauma_center,has_cardiac_care,has_pediatric_care,zone,address,phone
+HOSP-001,Fortis Hiranandani Hospital,19.0735,72.9972,150,45,8,5,True,True,True,Vashi,Sector 10A Vashi Navi Mumbai,02227717000
+HOSP-002,Apollo Hospitals Navi Mumbai,19.0202,73.0289,200,78,12,6,True,True,False,Belapur,Sector 13 CBD Belapur Navi Mumbai,02233505050
+HOSP-003,MGM New Bombay Hospital,19.0725,72.9937,250,90,10,6,True,True,True,Vashi,Sector 3 Vashi Navi Mumbai,02227814000
+HOSP-004,D Y Patil Hospital,19.0416,73.0222,300,120,15,8,True,True,True,Nerul,Sector 5 Nerul Navi Mumbai,02227700863
+HOSP-005,Kokilaben Dhirubhai Ambani Hospital,19.1062,73.0094,750,280,20,12,True,True,True,Kopar Khairane,Kopar Khairane Navi Mumbai,02230979797
+HOSP-006,NMMC General Hospital Vashi,19.0748,72.9980,400,140,15,8,True,False,True,Vashi,Sector 10A Vashi Navi Mumbai,02227899901
+HOSP-007,Terna Speciality Hospital,19.0314,73.0161,300,100,10,5,False,True,False,Nerul,Opp Nerul Railway Station Navi Mumbai,02227709000
+HOSP-008,Sterling Wockhardt Hospital,19.0769,72.9985,150,50,6,3,True,True,False,Vashi,Sector 7 Vashi Navi Mumbai,02261784444
+HOSP-009,Maasaheb Meenatai Thackeray Hospital,19.0340,73.0180,200,75,8,4,True,False,True,Nerul,Sector 2 Nerul Navi Mumbai,02227721234
+HOSP-010,Rajmata Jijai Hospital,19.1550,73.0180,100,35,4,2,False,False,True,Airoli,Sector 6 Airoli Navi Mumbai,02227690000
+HOSP-011,Mother and Child Hospital Belapur,19.0180,73.0400,120,45,5,3,False,False,True,Belapur,Sector 11 CBD Belapur Navi Mumbai,02227570006
+HOSP-012,Medicover Hospital Kharghar,19.1150,73.1356,120,40,5,3,False,True,True,Kharghar,Sector 4 Kharghar Navi Mumbai,02249727272
+HOSP-013,MITR Hospital Kharghar,19.1200,73.0700,100,38,4,3,True,True,False,Kharghar,Sector 7 Kharghar Navi Mumbai,02241117777
+HOSP-014,Panvel Sub-District Hospital,19.1039,73.1157,160,60,7,4,True,False,True,Panvel,Near Panvel Bus Stand Panvel,02227451234
+HOSP-015,Sanpada Community Health Center,19.0538,73.0258,80,30,3,2,False,True,False,Sanpada,Near Sanpada Railway Station,02227815678
+HOSP-016,Ulwe Primary Health Center,19.0237,73.1788,50,20,2,1,False,False,False,Ulwe,Sector 5 Ulwe Navi Mumbai,02227839012
+HOSP-017,Turbhe MIDC Health Center,19.1470,73.0857,60,25,3,1,True,False,False,Turbhe,MIDC Turbhe Navi Mumbai,02227620345
