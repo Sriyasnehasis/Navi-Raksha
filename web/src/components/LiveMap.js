@@ -19,25 +19,17 @@ const TYPE_COLORS = { ALS: '#dc2626', BLS: '#ea580c', BIKE: '#16a34a', MINI: '#1
 const SEV_COLORS  = { critical: '#dc2626', moderate: '#f97316', mild: '#eab308', minor: '#16a34a' };
 const SEV_RADIUS  = { critical: 15, moderate: 11, mild: 8, minor: 6 };
 
-function MapUpdater({ center, ambulances, incidents, isCitizenView }) {
+function MapUpdater({ center, incidents, isCitizenView }) {
   const map = useMap();
   
   useEffect(() => {
     if (isCitizenView && incidents.length > 0) {
       const victimPos = [incidents[0].latitude, incidents[0].longitude];
-      const assignedAmb = ambulances.find(a => a.assigned_incident === incidents[0].id);
-      
-      if (assignedAmb) {
-        const ambPos = [assignedAmb.latitude, assignedAmb.longitude];
-        const bounds = L.latLngBounds([victimPos, ambPos]);
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-      } else {
-        map.setView(victimPos, 15);
-      }
+      map.setView(victimPos, 15);
     } else {
       map.setView(center);
     }
-  }, [center, map, isCitizenView, incidents, ambulances]);
+  }, [center, map, isCitizenView, incidents]);
   
   return null;
 }
@@ -98,7 +90,6 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
         />
         <MapUpdater 
           center={center} 
-          ambulances={ambulances} 
           incidents={incidents} 
           isCitizenView={isCitizenView} 
         />
@@ -119,10 +110,10 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
            />
         )}
 
-        {/* Filter ambulances and incidents for Citizen View if enabled */}
-        {(isCitizenView && incidents.length > 0 
+        {/* Intelligent Filtering: Only filter ambulances if a specific one is assigned to THIS citizen's incident */}
+        {(isCitizenView && incidents.length > 0 && ambulances.some(a => a.assigned_incident === incidents[0].id)
            ? ambulances.filter(a => a.assigned_incident === incidents[0].id)
-           : ambulances
+           : (isCitizenView ? [] : ambulances) // Show nothing if citizen hasn't been assigned yet (cleaner)
         ).map(amb => {
           const isResponding = amb.status === 'responding';
           const pos = [amb.latitude || 19.076, amb.longitude || 72.877];
