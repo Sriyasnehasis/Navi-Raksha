@@ -26,10 +26,11 @@ function MapUpdater({ center, incidents, isCitizenView }) {
     if (isCitizenView && incidents.length > 0) {
       const victimPos = [incidents[0].latitude, incidents[0].longitude];
       map.setView(victimPos, 15);
-    } else {
+    } else if (isCitizenView) {
       map.setView(center);
     }
-  }, [center, map, isCitizenView, incidents]);
+    // In Admin view, we let the user pan/zoom freely after initial load
+  }, [isCitizenView, incidents, center, map]);
   
   return null;
 }
