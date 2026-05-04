@@ -183,8 +183,33 @@ export default function AdminPanel() {
            {showLogs && (
               <div style={S.modalOverlay} onClick={() => setShowLogs(null)}>
                  <div style={S.modal} onClick={e => e.stopPropagation()}>
-                    <div style={S.modalHeader}><h3>Log: {showLogs.patient_name}</h3><button onClick={() => setShowLogs(null)} style={S.closeBtn}>×</button></div>
-                    <div style={S.modalBody}><div style={S.logItem}>Signal Received...</div></div>
+                    <div style={S.modalHeader}>
+                       <h3 style={{ margin: 0, fontSize: 18 }}>Intelligence Log: {showLogs.patient_name}</h3>
+                       <button onClick={() => setShowLogs(null)} style={S.closeBtn}>×</button>
+                    </div>
+                    <div style={S.modalBody}>
+                       <div style={S.logItem}>
+                          <div style={{ fontWeight: 800, color: '#1E3A8A', fontSize: 10 }}>[ {new Date(showLogs.timestamp).toLocaleTimeString()} ] SIGNAL RECEIVED</div>
+                          <div style={{ marginTop: 4 }}>SOS intelligence uplink established from {showLogs.location_address}.</div>
+                       </div>
+                       
+                       {showLogs.prediction?.features_used && (
+                         <div style={{ ...S.logItem, borderLeft: '4px solid #4F46E5' }}>
+                            <div style={{ fontWeight: 800, color: '#4F46E5', fontSize: 10 }}>DEEP INTELLIGENCE AUDIT</div>
+                            <div style={{ marginTop: 6, fontSize: 11, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                               <div>• Traffic: {showLogs.prediction.features_used.hour >= 8 && showLogs.prediction.features_used.hour <= 10 ? 'HEAVY' : 'NORMAL'}</div>
+                               <div>• Weather: {showLogs.prediction.features_used.is_raining ? 'RAINING' : 'CLEAR'}</div>
+                               <div>• Zone Violations: {showLogs.prediction.features_used.violations_zone}</div>
+                               <div>• Driver Exp: Lvl {showLogs.prediction.features_used.driver_exp}</div>
+                            </div>
+                         </div>
+                       )}
+
+                       <div style={{ ...S.logItem, borderLeft: '4px solid #16A34A' }}>
+                          <div style={{ fontWeight: 800, color: '#16A34A', fontSize: 10 }}>RECOMMENDATION ENGINE</div>
+                          <div style={{ marginTop: 4 }}>Recommended {showLogs.prediction?.type || 'ALS'} unit with {showLogs.prediction?.conf || '95%'} confidence. ETA: {showLogs.prediction?.eta}.</div>
+                       </div>
+                    </div>
                  </div>
               </div>
            )}
