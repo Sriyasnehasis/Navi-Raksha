@@ -21,15 +21,24 @@ db = get_firestore()
 # --- HELPER: Load Hospitals from CSV ---
 def load_hospitals():
     hosps = []
-    # Use relative path for production (Render)
-    path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw", "hospitals_navi_mumbai.csv")
-    if not os.path.exists(path):
-        # Try alternate path if running from root
-        path = "data/raw/hospitals_navi_mumbai.csv"
-        
-    if os.path.exists(path):
+    # Try multiple paths for robustness (Render vs Local)
+    paths = [
+        os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw", "hospitals_navi_mumbai.csv"),
+        "data/raw/hospitals_navi_mumbai.csv",
+        "../../data/raw/hospitals_navi_mumbai.csv",
+        "/opt/render/project/src/data/raw/hospitals_navi_mumbai.csv"
+    ]
+    
+    found_path = None
+    for p in paths:
+        if os.path.exists(p):
+            found_path = p
+            break
+            
+    if found_path:
+        logger.info(f"Loading hospitals from: {os.path.abspath(found_path)}")
         try:
-            with open(path, mode='r', encoding='utf-8') as f:
+            with open(found_path, mode='r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     hosps.append({
@@ -41,13 +50,18 @@ def load_hospitals():
                         'total_beds': int(row['beds']),
                         'zone': row['zone']
                     })
+            logger.info(f"Successfully loaded {len(hosps)} hospitals.")
             return hosps
         except Exception as e:
-            print(f"Error loading hospitals CSV: {e}")
+            logger.error(f"Error reading hospitals CSV: {e}")
+    else:
+        logger.warning("COULD NOT FIND hospitals_navi_mumbai.csv! Checked paths: " + str(paths))
+        logger.info(f"Current Working Directory: {os.getcwd()}")
+
     # Fallback if CSV missing
     return [
-        {'id': 'H001', 'name': 'Fortis Hospital Vashi', 'available_beds': 45, 'total_beds': 150, 'latitude': 19.071, 'longitude': 72.997},
-        {'id': 'H002', 'name': 'Apollo Hospitals Belapur', 'available_beds': 78, 'total_beds': 200, 'latitude': 19.020, 'longitude': 73.029}
+        {'id': 'H001', 'name': 'Fortis Hospital Vashi (FALLBACK)', 'available_beds': 45, 'total_beds': 150, 'latitude': 19.071, 'longitude': 72.997},
+        {'id': 'H002', 'name': 'Apollo Hospitals Belapur (FALLBACK)', 'available_beds': 78, 'total_beds': 200, 'latitude': 19.020, 'longitude': 73.029}
     ]
 
 # --- GLOBAL IN-MEMORY STATE ---
