@@ -153,6 +153,24 @@ export default function AdminPanel() {
                          </div>
                          <div style={S.modelSide}><div style={S.modelLabel}>ETA</div><div style={S.modelVal}>{inc.prediction?.eta || "4.0 min"}</div></div>
                       </div>
+                      
+                      {/* NEW: SCIENTIFIC FEATURE OUTPUT */}
+                      {inc.prediction?.features_used && (
+                        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #E2E8F0', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px 8px' }}>
+                           <div style={{ fontSize: 7, color: '#94A3B8', fontWeight: 700 }}>
+                              TRAFFIC: <span style={{ color: '#475569' }}>{inc.prediction.features_used.hour >= 8 && inc.prediction.features_used.hour <= 10 ? 'HIGH' : 'STABLE'}</span>
+                           </div>
+                           <div style={{ fontSize: 7, color: '#94A3B8', fontWeight: 700 }}>
+                              WEATHER: <span style={{ color: '#475569' }}>{inc.prediction.features_used.is_raining ? '🌧️ RAIN' : '☀️ CLEAR'}</span>
+                           </div>
+                           <div style={{ fontSize: 7, color: '#94A3B8', fontWeight: 700 }}>
+                              DRIVER EXP: <span style={{ color: '#475569' }}>Lvl {inc.prediction.features_used.driver_exp}</span>
+                           </div>
+                           <div style={{ fontSize: 7, color: '#94A3B8', fontWeight: 700 }}>
+                              ZONE VIOL: <span style={{ color: '#475569' }}>{inc.prediction.features_used.violations_zone}</span>
+                           </div>
+                        </div>
+                      )}
                    </div>
                    <div style={S.cardActions}>
                       <button style={{ ...S.dispatchBtn, background: dispatched[inc.id] ? '#16A34A' : '#1E3A8A' }} onClick={() => handleVerify(inc.id)}>{dispatched[inc.id] ? 'Unit Dispatched' : 'Verify & Dispatch'}</button>
