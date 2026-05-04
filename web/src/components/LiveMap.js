@@ -16,8 +16,8 @@ if (typeof window !== "undefined") {
 }
 
 const TYPE_COLORS = { ALS: '#dc2626', BLS: '#ea580c', BIKE: '#16a34a', MINI: '#16a34a' };
-const SEV_COLORS  = { critical: '#dc2626', severe: '#ea580c', moderate: '#ca8a04', minor: '#16a34a' };
-const SEV_RADIUS  = { critical: 14, severe: 11, moderate: 8, minor: 6 };
+const SEV_COLORS  = { critical: '#dc2626', moderate: '#f97316', mild: '#eab308', minor: '#16a34a' };
+const SEV_RADIUS  = { critical: 15, moderate: 11, mild: 8, minor: 6 };
 
 function MapUpdater({ center }) {
   const map = useMap();
@@ -27,7 +27,7 @@ function MapUpdater({ center }) {
   return null;
 }
 
-const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat, userLng }) => {
+const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat, userLng, isCitizenView = false }) => {
   const [isMounted, setIsMounted] = useState(false);
   const center = [userLat || 19.076, userLng || 72.877];
 
@@ -88,7 +88,11 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
           <Popup>📍 Command Center</Popup>
         </CircleMarker>
 
-        {ambulances.map(amb => {
+        {/* Filter ambulances and incidents for Citizen View if enabled */}
+        {(isCitizenView && incidents.length > 0 
+           ? ambulances.filter(a => a.assigned_incident === incidents[0].id)
+           : ambulances
+        ).map(amb => {
           const isResponding = amb.status === 'responding';
           const pos = [amb.latitude || 19.076, amb.longitude || 72.877];
           const targetInc = incidents.find(i => i.id === amb.assigned_incident);
@@ -97,7 +101,6 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
             <React.Fragment key={`amb-group-${amb.id}-${amb.status}`}>
               {isResponding && targetInc && (
                 <>
-                  {/* Glowing Path Effect - Road-aware A* path if available */}
                   <Polyline 
                     positions={targetInc.route && targetInc.route.length > 0 
                       ? targetInc.route 
@@ -163,26 +166,32 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
           );
         })}
 
-        {incidents.filter(i => i?.latitude && i?.longitude).map(inc => (
-          <CircleMarker
-            key={`inc-${inc.id}`}
-            center={[inc.latitude, inc.longitude]}
-            radius={inc.severity?.toLowerCase() === 'critical' ? 14 : 10}
-            color="#fff"
-            fillColor={inc.severity?.toLowerCase() === 'critical' ? '#dc2626' : '#ea580c'}
-            fillOpacity={0.8}
-            weight={3}
-            style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }}
-          >
-            <Popup>
-              <div style={{ padding: '2px' }}>
-                <div style={{ color: '#dc2626', fontWeight: 800, fontSize: '12px' }}>⚠️ {inc.severity?.toUpperCase()}</div>
-                <div style={{ fontWeight: 700, margin: '4px 0' }}>{inc.patient_name}</div>
-                <div style={{ fontSize: '11px', color: '#64748B' }}>{inc.incident_type}</div>
-              </div>
-            </Popup>
-          </CircleMarker>
-        ))}
+        {(isCitizenView && incidents.length > 0 ? incidents.slice(0, 1) : incidents)
+          .filter(i => i?.latitude && i?.longitude)
+          .map(inc => {
+            const sev = inc.severity?.toLowerCase() || 'moderate';
+            return (
+              <CircleMarker
+                key={`inc-${inc.id}`}
+                center={[inc.latitude, inc.longitude]}
+                radius={SEV_RADIUS[sev] || 10}
+                color="#fff"
+                fillColor={SEV_COLORS[sev] || '#ea580c'}
+                fillOpacity={0.8}
+                weight={3}
+                style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }}
+              >
+                <Popup>
+                  <div style={{ padding: '2px' }}>
+                    <div style={{ color: SEV_COLORS[sev], fontWeight: 800, fontSize: '12px' }}>⚠️ {sev.toUpperCase()}</div>
+                    <div style={{ fontWeight: 700, margin: '4px 0' }}>{inc.patient_name}</div>
+                    <div style={{ fontSize: '11px', color: '#64748B' }}>{inc.incident_type}</div>
+                  </div>
+                </Popup>
+              </CircleMarker>
+            );
+          })
+        }
 
         {hospitals.filter(h => h?.latitude && h?.longitude).map(hosp => (
           <Marker

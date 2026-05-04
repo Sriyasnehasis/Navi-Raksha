@@ -302,6 +302,7 @@ export default function CitizenPortal() {
           hospitals={hospitals}
           userLat={simPos[0]} 
           userLng={simPos[1]} 
+          isCitizenView={true}
         />
       </div>
 
