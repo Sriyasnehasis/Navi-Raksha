@@ -86,9 +86,6 @@ export default function CitizenPortal() {
       const incidentWithId = { ...data, id: data.id || sosPayload.id };
       setDispatched(incidentWithId);
       
-      // CRITICAL: Persist ID for the sync loop
-      localStorage.setItem('naviraksha_incident_id', incidentWithId.id);
-      
       // Local Sync for Admin Panel
       bc.postMessage({ type: 'NEW_SOS', data: { ...sosPayload, ...incidentWithId } });
       setTimeout(() => bc.close(), 1000);
@@ -129,22 +126,13 @@ export default function CitizenPortal() {
         setAmbulances(aData.ambulances || []);
         setHospitals(hData.hospitals || []);
         
-        // Use a functional update or a ref if needed, but since we want to check current state
-        // we can either keep it in dependencies (which causes resets) or use a more complex pattern.
-        // For now, let's just make it cleaner.
-        const currentId = localStorage.getItem('naviraksha_incident_id');
-        if (currentId && iData.incidents) {
-           const myInc = iData.incidents.find(i => i.id === currentId);
+        if (dispatched && iData.incidents) {
+           const myInc = iData.incidents.find(i => i.id === dispatched.id);
            if (myInc) {
              if (myInc.status === 'Resolved') {
                 setDispatched(null);
-                localStorage.removeItem('naviraksha_incident_id');
              } else {
                 setDispatched(myInc);
-                // Auto-fill form if currently empty to show active session data
-                if (!name && myInc.patient_name) setName(myInc.patient_name);
-                if (!phone && myInc.phone) setPhone(myInc.phone);
-                if (type === "Medical" && myInc.incident_type) setType(myInc.incident_type);
              }
            }
         }
