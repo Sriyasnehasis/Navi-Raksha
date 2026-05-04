@@ -6,6 +6,8 @@ import threading
 import time
 import math
 import random
+import csv
+import os
 from firebase_admin import firestore
 from firebase_config import get_firestore
 
@@ -16,6 +18,33 @@ app = Flask(__name__)
 CORS(app)
 db = get_firestore()
 
+# --- HELPER: Load Hospitals from CSV ---
+def load_hospitals():
+    hosps = []
+    path = "c:\\Users\\sriya\\Desktop\\Learner\\navi-raksha\\data\\raw\\hospitals_navi_mumbai.csv"
+    if os.path.exists(path):
+        try:
+            with open(path, mode='r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    hosps.append({
+                        'id': row['id'],
+                        'name': row['name'],
+                        'latitude': float(row['lat']),
+                        'longitude': float(row['lon']),
+                        'available_beds': int(row['available_beds']),
+                        'total_beds': int(row['beds']),
+                        'zone': row['zone']
+                    })
+            return hosps
+        except Exception as e:
+            print(f"Error loading hospitals CSV: {e}")
+    # Fallback if CSV missing
+    return [
+        {'id': 'H001', 'name': 'Fortis Hospital Vashi', 'available_beds': 45, 'total_beds': 150, 'latitude': 19.071, 'longitude': 72.997},
+        {'id': 'H002', 'name': 'Apollo Hospitals Belapur', 'available_beds': 78, 'total_beds': 200, 'latitude': 19.020, 'longitude': 73.029}
+    ]
+
 # --- GLOBAL IN-MEMORY STATE ---
 STATE = {
     "ambulances": [
@@ -24,13 +53,7 @@ STATE = {
         {'id': 'BIKE-001', 'driver_name': 'Suresh Nair', 'status': 'available', 'type': 'BIKE', 'latitude': 19.0150, 'longitude': 73.0330, 'driver_exp': 4, 'has_escort': False}
     ],
     "incidents": [],
-    "hospitals": [
-        {'id': 'H001', 'name': 'Fortis Hospital Vashi', 'available_beds': 45, 'total_beds': 150, 'latitude': 19.071, 'longitude': 72.997},
-        {'id': 'H002', 'name': 'Apollo Clinic Vashi', 'available_beds': 78, 'total_beds': 100, 'latitude': 19.061, 'longitude': 72.987},
-        {'id': 'H003', 'name': 'MGM Hospital Vashi', 'available_beds': 56, 'total_beds': 200, 'latitude': 19.074, 'longitude': 73.003},
-        {'id': 'H004', 'name': 'Reliance Hospital KK', 'available_beds': 112, 'total_beds': 250, 'latitude': 19.098, 'longitude': 73.012},
-        {'id': 'H005', 'name': 'Terna Hospital Nerul', 'available_beds': 34, 'total_beds': 120, 'latitude': 19.034, 'longitude': 73.021}
-    ],
+    "hospitals": load_hospitals(),
     "last_cloud_sync": 0
 }
 

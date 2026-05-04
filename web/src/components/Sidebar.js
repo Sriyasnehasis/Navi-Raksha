@@ -15,45 +15,49 @@ export default function Sidebar() {
 
   useEffect(() => {
     const checkSync = async () => {
+      let activeInc = null;
+
+      // 1. Fetch Incidents
       try {
         const res = await fetch(`${backendUrl}/incidents/active`);
-        const iData = await res.json();
-        
-        if (iData.incidents?.length > 0) {
-          setCitizenName(iData.incidents[0].patient_name || "Active Signal");
-          setCitizenPhone(iData.incidents[0].phone || "");
-        } else {
-          setCitizenName("No Active SOS Signal");
-          setCitizenPhone("");
+        if (res.ok) {
+          const iData = await res.json();
+          if (iData.incidents && iData.incidents.length > 0) {
+            activeInc = iData.incidents[0];
+            setCitizenName(activeInc.patient_name || "Active Signal");
+            setCitizenPhone(activeInc.phone || "");
+          } else {
+            setCitizenName("No Active SOS Signal");
+            setCitizenPhone("");
+          }
         }
       } catch (e) {
-        console.error("Sidebar Sync Error:", e);
+        console.error("Sidebar Incident Sync Error:", e);
         setCitizenName("Sync Offline");
       }
 
-      // Hospital Sync from DB with proximity sorting
+      // 2. Fetch Hospitals
       try {
         const hRes = await fetch(`${backendUrl}/hospitals`);
-        const hData = await hRes.json();
-        let rawHospitals = hData.hospitals || [];
+        if (hRes.ok) {
+          const hData = await hRes.json();
+          let rawHospitals = hData.hospitals || [];
 
-        // If there's an active citizen, sort hospitals by distance
-        if (iData.incidents?.length > 0) {
-          const cLat = iData.incidents[0].latitude;
-          const cLng = iData.incidents[0].longitude;
+          // Sort by distance if we have an active citizen
+          if (activeInc && activeInc.latitude) {
+            rawHospitals = rawHospitals.map(h => {
+              const dist = Math.sqrt(
+                Math.pow(h.latitude - activeInc.latitude, 2) + 
+                Math.pow(h.longitude - activeInc.longitude, 2)
+              ) * 111;
+              return { ...h, distance: dist };
+            }).sort((a, b) => (a.distance || 0) - (b.distance || 0));
+          }
 
-          rawHospitals = rawHospitals.map(h => {
-            // Simple distance approximation
-            const dist = Math.sqrt(
-              Math.pow(h.latitude - cLat, 2) + Math.pow(h.longitude - cLng, 2)
-            ) * 111; // 1 degree ~ 111km
-            return { ...h, distance: dist };
-          }).sort((a, b) => a.distance - b.distance);
+          setHospitals(rawHospitals.slice(0, 5));
         }
-
-        setHospitals(rawHospitals.slice(0, 5)); // Show top 5 nearest
       } catch (e) {
-        console.error("Hospital Fetch Error:", e);
+        console.error("Sidebar Hospital Fetch Error:", e);
       }
     };
 
