@@ -21,7 +21,12 @@ db = get_firestore()
 # --- HELPER: Load Hospitals from CSV ---
 def load_hospitals():
     hosps = []
-    path = "c:\\Users\\sriya\\Desktop\\Learner\\navi-raksha\\data\\raw\\hospitals_navi_mumbai.csv"
+    # Use relative path for production (Render)
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw", "hospitals_navi_mumbai.csv")
+    if not os.path.exists(path):
+        # Try alternate path if running from root
+        path = "data/raw/hospitals_navi_mumbai.csv"
+        
     if os.path.exists(path):
         try:
             with open(path, mode='r', encoding='utf-8') as f:
@@ -82,7 +87,8 @@ def get_neighborhood(lat, lng):
     return "Sanpada, Sector 5"
 
 def get_ai_recommendation(lat, lng):
-    now = datetime.now()
+    try:
+        now = datetime.now()
     month = now.month
     hour = now.hour
     day_of_week = now.weekday()
@@ -146,7 +152,9 @@ def get_ai_recommendation(lat, lng):
             'driver_exp': driver_exp,
             'has_escort': has_escort
         }
-    }
+    except Exception as e:
+        logger.error(f"AI Recommendation Logic Error: {e}")
+        return {'type': 'ALS', 'eta': '4.2 min', 'conf': '90%', 'fallback': True}
 
 # --- BACKGROUND ENGINES ---
 def cloud_sync_task():
