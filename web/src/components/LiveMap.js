@@ -100,7 +100,9 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
         </CircleMarker>
 
         {/* Planned Route for Citizen (Dashed) if not yet responding */}
-        {isCitizenView && incidents.length > 0 && !ambulances.some(a => a.assigned_incident === incidents[0].id) && (
+        {isCitizenView && incidents.length > 0 && 
+         incidents[0].status !== 'Resolved' && 
+         !ambulances.some(a => a.assigned_incident === incidents[0].id) && (
            <Polyline 
              positions={[center, [incidents[0].latitude + 0.02, incidents[0].longitude + 0.02]]} // Simulating path from nearest depot
              color="#94A3B8"

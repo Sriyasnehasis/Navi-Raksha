@@ -135,7 +135,15 @@ export default function CitizenPortal() {
         const currentId = localStorage.getItem('naviraksha_incident_id');
         if (currentId && iData.incidents) {
            const myInc = iData.incidents.find(i => i.id === currentId);
-           if (myInc) setDispatched(myInc);
+           if (myInc) {
+             if (myInc.status === 'Resolved') {
+                // Clear finished incidents
+                setDispatched(null);
+                localStorage.removeItem('naviraksha_incident_id');
+             } else {
+                setDispatched(myInc);
+             }
+           }
         }
       } catch (e) { 
         if (isMounted) console.error("Sync Error:", e); 
