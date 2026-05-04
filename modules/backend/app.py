@@ -287,25 +287,38 @@ def verify_dispatch():
     data = request.json
     inc_id = data.get('incident_id')
     amb_id = data.get('ambulance_id')
+    logger.info(f"VERIFY DISPATCH: Incident={inc_id}, Amb={amb_id}")
     
-    target = next((i for i in STATE["incidents"] if i['id'] == inc_id), None)
-    if not target: return jsonify({"error": "Incident not found"}), 404
+    # Use case-insensitive search and strip whitespace
+    target = next((i for i in STATE["incidents"] if str(i['id']).strip().upper() == str(inc_id).strip().upper()), None)
+    if not target: 
+        logger.warning(f"Incident {inc_id} NOT FOUND in state!")
+        return jsonify({"error": "Incident not found"}), 404
         
-    assigned_amb = next((a for a in STATE["ambulances"] if a['id'] == amb_id), None)
+    assigned_amb = next((a for a in STATE["ambulances"] if str(a['id']).strip().upper() == str(amb_id).strip().upper()), None)
     if assigned_amb:
+        logger.info(f"Found Ambulance {assigned_amb['id']}. Updating status to responding.")
         assigned_amb['status'] = 'responding'
         assigned_amb['assigned_incident'] = inc_id
         target['status'] = 'Dispatched'
         target['assigned_ambulance'] = amb_id
-        target['route'] = get_route(assigned_amb['latitude'], assigned_amb['longitude'], target['latitude'], target['longitude'])
+        
+        # Calculate routing path
+        target['path'] = get_route(assigned_amb['latitude'], assigned_amb['longitude'], target['latitude'], target['longitude'])
+        target['route'] = target['path'] # Support both keys
+        
+        logger.info(f"Dispatch Complete. Path points: {len(target['path'])}")
         
         if db:
             def sync_v():
                 try:
-                    db.collection('incidents').document(inc_id).update({'status': 'Dispatched', 'assigned_ambulance': amb_id, 'route': target['route']})
+                    db.collection('incidents').document(inc_id).update({'status': 'Dispatched', 'assigned_ambulance': amb_id, 'path': target['path']})
                     db.collection('ambulances').document(amb_id).update({'status': 'responding', 'assigned_incident': inc_id})
-                except: pass
+                    logger.info("Cloud Sync for Dispatch SUCCESS")
+                except Exception as e: logger.error(f"Cloud Sync Error: {e}")
             threading.Thread(target=sync_v).start()
+    else:
+        logger.warning(f"Ambulance {amb_id} NOT FOUND in state!")
             
     return jsonify(target)
 
