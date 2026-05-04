@@ -1,0 +1,197 @@
+{
+  "extreme": [
+    {
+      "scenario": "Long Distance + Monsoon + Night",
+      "description": "Maximum distance during monsoon at midnight",
+      "inputs": {
+        "distance_km": 24.0,
+        "is_monsoon": 1,
+        "is_raining": 1,
+        "hour": 0,
+        "vehicle_speed": 15.0
+      },
+      "predicted_eta_minutes": 15.0,
+      "expected_severity": "HIGH_ETA",
+      "failures": [],
+      "passed": true
+    },
+    {
+      "scenario": "Maximum Distance + No Escort + Violations Zone",
+      "description": "Far call in a violations-heavy zone with no escort",
+      "inputs": {
+        "distance_km": 24.0,
+        "violations_zone": 1,
+        "has_escort": 0,
+        "vehicle_speed": 20.0
+      },
+      "predicted_eta_minutes": 15.0,
+      "expected_severity": "HIGH_ETA",
+      "failures": [],
+      "passed": true
+    },
+    {
+      "scenario": "Weekend Night Peak Hour",
+      "description": "Late night weekend call with rain",
+      "inputs": {
+        "is_weekend": 1,
+        "hour": 23,
+        "is_raining": 1,
+        "distance_km": 15.0,
+        "vehicle_speed": 25.0
+      },
+      "predicted_eta_minutes": 15.0,
+      "expected_severity": "HIGH_ETA",
+      "failures": [],
+      "passed": true
+    },
+    {
+      "scenario": "Storm Conditions + Inexperienced Driver",
+      "description": "Heavy rain, monsoon, new driver (exp=1)",
+      "inputs": {
+        "is_monsoon": 1,
+        "is_raining": 1,
+        "driver_exp": 1,
+        "vehicle_speed": 18.0,
+        "distance_km": 12.0
+      },
+      "predicted_eta_minutes": 15.0,
+      "expected_severity": "HIGH_ETA",
+      "failures": [],
+      "passed": true
+    },
+    {
+      "scenario": "Farthest Zone with All Adverse Conditions",
+      "description": "Airoli zone, max distance, monsoon, night, no escort",
+      "inputs": {
+        "zone_Vashi": 0,
+        "zone_Nerul": 0,
+        "zone_Kharghar": 0,
+        "zone_Belapur": 0,
+        "zone_Airoli": 1,
+        "distance_km": 24.0,
+        "is_monsoon": 1,
+        "hour": 2,
+        "has_escort": 0
+      },
+      "predicted_eta_minutes": 14.5693,
+      "expected_severity": "HIGH_ETA",
+      "failures": [],
+      "passed": true
+    }
+  ],
+  "network_outage": [
+    {
+      "scenario": "Network Outage \u2014 Low Severity Call",
+      "description": "Dispatch comms down (slow speed, violations) \u2014 routine call",
+      "inputs": {
+        "vehicle_speed": 5.0,
+        "violations_zone": 1,
+        "distance_km": 5.0
+      },
+      "predicted_eta_minutes": 15.0,
+      "expected_severity": "DEGRADED",
+      "failures": [],
+      "passed": true
+    },
+    {
+      "scenario": "Network Outage \u2014 Critical Distance Call",
+      "description": "Dispatch down + long distance",
+      "inputs": {
+        "vehicle_speed": 5.0,
+        "violations_zone": 1,
+        "distance_km": 20.0
+      },
+      "predicted_eta_minutes": 15.0,
+      "expected_severity": "HIGH_ETA",
+      "failures": [],
+      "passed": true
+    },
+    {
+      "scenario": "Network Outage + Monsoon",
+      "description": "Combined comms failure and monsoon conditions",
+      "inputs": {
+        "vehicle_speed": 8.0,
+        "violations_zone": 1,
+        "is_monsoon": 1,
+        "is_raining": 1,
+        "distance_km": 12.0
+      },
+      "predicted_eta_minutes": 15.0,
+      "expected_severity": "HIGH_ETA",
+      "failures": [],
+      "passed": true
+    },
+    {
+      "scenario": "Partial Outage \u2014 Unknown Response Time",
+      "description": "Intermittent comms, near-zero speed reported",
+      "inputs": {
+        "vehicle_speed": 2.0,
+        "violations_zone": 1,
+        "distance_km": 8.0
+      },
+      "predicted_eta_minutes": 15.0,
+      "expected_severity": "DEGRADED",
+      "failures": [],
+      "passed": true
+    }
+  ],
+  "low_ambulance": [
+    {
+      "scenario": "Non-Standard Ambulance \u2014 Long Distance",
+      "description": "Only basic/backup unit available for far call",
+      "inputs": {
+        "ambulance_type": 0,
+        "distance_km": 20.0,
+        "has_escort": 0
+      },
+      "predicted_eta_minutes": 14.5559,
+      "expected_severity": "HIGH_ETA",
+      "failures": [],
+      "passed": true
+    },
+    {
+      "scenario": "Backup Unit + Inexperienced Driver",
+      "description": "Worst resource combo: backup ambulance + new driver",
+      "inputs": {
+        "ambulance_type": 0,
+        "driver_exp": 1,
+        "has_escort": 0,
+        "distance_km": 15.0
+      },
+      "predicted_eta_minutes": 14.4944,
+      "expected_severity": "HIGH_ETA",
+      "failures": [],
+      "passed": true
+    },
+    {
+      "scenario": "Backup Unit + Monsoon + Night",
+      "description": "Resource shortage during bad weather at night",
+      "inputs": {
+        "ambulance_type": 0,
+        "is_monsoon": 1,
+        "is_raining": 1,
+        "hour": 1,
+        "distance_km": 12.0
+      },
+      "predicted_eta_minutes": 14.5517,
+      "expected_severity": "HIGH_ETA",
+      "failures": [],
+      "passed": true
+    },
+    {
+      "scenario": "Combined Resource + Distance Shortage",
+      "description": "Backup unit, no escort, max distance, violations zone",
+      "inputs": {
+        "ambulance_type": 0,
+        "has_escort": 0,
+        "distance_km": 24.0,
+        "violations_zone": 1,
+        "driver_exp": 2
+      },
+      "predicted_eta_minutes": 14.5647,
+      "expected_severity": "HIGH_ETA",
+      "failures": [],
+      "passed": true
+    }
+  ]
+}

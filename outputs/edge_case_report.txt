@@ -1,0 +1,29 @@
+============================================================
+  ANJANAA (Navi-Raksha) - Edge Case Testing Report
+  Generated: 2026-05-04 05:40:11
+============================================================
+
+  Total Tests : 13
+  Passed      : 13
+  Failed      : 0
+  Pass Rate   : 100.0%
+
+------------------------------------------------------------
+  FAILURES AND MITIGATIONS
+------------------------------------------------------------
+
+  All edge case tests passed.
+
+------------------------------------------------------------
+  GENERAL MITIGATIONS FOR NAVI-RAKSHA
+------------------------------------------------------------
+
+  1. Post-processing safety buffer: if distance > 18km AND
+     monsoon/rain conditions, add +3 min to predicted ETA.
+  2. Speed floor check: if vehicle_speed < 10, flag as
+     degraded-comms and apply minimum ETA floor of 10 min.
+  3. Confidence threshold: if prediction near 15 min (max),
+     escalate to human dispatcher for manual verification.
+  4. Retrain quarterly with new trip data including edge cases.
+  5. Monitor feature drift on distance_km and vehicle_speed.
+============================================================
