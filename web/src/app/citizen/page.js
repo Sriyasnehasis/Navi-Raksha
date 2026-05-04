@@ -83,10 +83,14 @@ export default function CitizenPortal() {
       if (!response.ok) throw new Error("Backend Refused Connection");
       
       const data = await response.json();
-      setDispatched(data);
+      const incidentWithId = { ...data, id: data.id || sosPayload.id };
+      setDispatched(incidentWithId);
+      
+      // CRITICAL: Persist ID for the sync loop
+      localStorage.setItem('naviraksha_incident_id', incidentWithId.id);
       
       // Local Sync for Admin Panel
-      bc.postMessage({ type: 'NEW_SOS', data: { ...sosPayload, prediction: data.prediction } });
+      bc.postMessage({ type: 'NEW_SOS', data: { ...sosPayload, ...incidentWithId } });
       setTimeout(() => bc.close(), 1000);
 
     } catch (err) {

@@ -85,8 +85,19 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
 
         {/* Dynamic Data Layers */}
         <CircleMarker center={center} radius={10} color="#3b82f6" fillColor="#3b82f6" fillOpacity={0.8} weight={3}>
-          <Popup>📍 Command Center</Popup>
+          <Popup>📍 {isCitizenView ? "Your Location" : "Command Center"}</Popup>
         </CircleMarker>
+
+        {/* Planned Route for Citizen (Dashed) if not yet responding */}
+        {isCitizenView && incidents.length > 0 && !ambulances.some(a => a.assigned_incident === incidents[0].id) && (
+           <Polyline 
+             positions={[center, [incidents[0].latitude + 0.02, incidents[0].longitude + 0.02]]} // Simulating path from nearest depot
+             color="#94A3B8"
+             dashArray="5, 10"
+             weight={2}
+             opacity={0.5}
+           />
+        )}
 
         {/* Filter ambulances and incidents for Citizen View if enabled */}
         {(isCitizenView && incidents.length > 0 
