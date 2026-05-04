@@ -137,11 +137,14 @@ export default function CitizenPortal() {
            const myInc = iData.incidents.find(i => i.id === currentId);
            if (myInc) {
              if (myInc.status === 'Resolved') {
-                // Clear finished incidents
                 setDispatched(null);
                 localStorage.removeItem('naviraksha_incident_id');
              } else {
                 setDispatched(myInc);
+                // Auto-fill form if currently empty to show active session data
+                if (!name && myInc.patient_name) setName(myInc.patient_name);
+                if (!phone && myInc.phone) setPhone(myInc.phone);
+                if (type === "Medical" && myInc.incident_type) setType(myInc.incident_type);
              }
            }
         }

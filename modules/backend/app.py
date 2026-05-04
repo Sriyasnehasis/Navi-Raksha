@@ -276,38 +276,48 @@ def dispatch():
         "prediction": get_ai_recommendation(lat, lng, data.get("severity", "Moderate"))
     }
     STATE["incidents"].insert(0, new_inc)
+    
     if db:
-        try: db.collection('incidents').document(new_inc['id']).set(new_inc)
-        except: pass
+        threading.Thread(target=lambda: db.collection('incidents').document(new_inc['id']).set(new_inc)).start()
+        
     return jsonify(new_inc)
+
+@app.route('/dispatch/verify', methods=['POST'])
+def verify_dispatch():
+    data = request.json
+    inc_id = data.get('incident_id')
+    amb_id = data.get('ambulance_id')
+    
+    target = next((i for i in STATE["incidents"] if i['id'] == inc_id), None)
+    if not target: return jsonify({"error": "Incident not found"}), 404
+        
+    assigned_amb = next((a for a in STATE["ambulances"] if a['id'] == amb_id), None)
+    if assigned_amb:
+        assigned_amb['status'] = 'responding'
+        assigned_amb['assigned_incident'] = inc_id
+        target['status'] = 'Dispatched'
+        target['assigned_ambulance'] = amb_id
+        target['route'] = get_route(assigned_amb['latitude'], assigned_amb['longitude'], target['latitude'], target['longitude'])
+        
+        if db:
+            def sync_v():
+                try:
+                    db.collection('incidents').document(inc_id).update({'status': 'Dispatched', 'assigned_ambulance': amb_id, 'route': target['route']})
+                    db.collection('ambulances').document(amb_id).update({'status': 'responding', 'assigned_incident': inc_id})
+                except: pass
+            threading.Thread(target=sync_v).start()
+            
+    return jsonify(target)
 
 @app.route('/incidents/<inc_id>/status', methods=['PUT'])
 def update_status(inc_id):
     status = request.json.get('status', 'Dispatched')
-    assigned_amb_id = None
-    route_path = None
-    
     for inc in STATE["incidents"]:
         if inc['id'] == inc_id:
             inc['status'] = status
-            if status == 'Dispatched':
-                for amb in STATE["ambulances"]:
-                    if amb['status'] == 'available':
-                        amb['status'] = 'responding'
-                        amb['assigned_incident'] = inc_id
-                        assigned_amb_id = amb['id']
-                        route_path = get_route(amb['latitude'], amb['longitude'], inc['latitude'], inc['longitude'])
-                        inc['path'] = route_path
-                        break
-    if db:
-        def update():
-            try:
-                db.collection('incidents').document(inc_id).update({'status': status, 'path': route_path})
-                if assigned_amb_id:
-                    db.collection('ambulances').document(assigned_amb_id).update({'status': 'responding', 'assigned_incident': inc_id})
-            except: pass
-        threading.Thread(target=update).start()
-    return jsonify({"status": "updated", "path": route_path})
+            if db: threading.Thread(target=lambda: db.collection('incidents').document(inc_id).update({'status': status})).start()
+            break
+    return jsonify({"status": "updated"})
 
 @app.route('/admin/cleanup', methods=['POST'])
 def cleanup():
