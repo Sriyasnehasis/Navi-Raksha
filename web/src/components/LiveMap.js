@@ -19,11 +19,26 @@ const TYPE_COLORS = { ALS: '#dc2626', BLS: '#ea580c', BIKE: '#16a34a', MINI: '#1
 const SEV_COLORS  = { critical: '#dc2626', moderate: '#f97316', mild: '#eab308', minor: '#16a34a' };
 const SEV_RADIUS  = { critical: 15, moderate: 11, mild: 8, minor: 6 };
 
-function MapUpdater({ center }) {
+function MapUpdater({ center, ambulances, incidents, isCitizenView }) {
   const map = useMap();
+  
   useEffect(() => {
-    map.setView(center);
-  }, [center, map]);
+    if (isCitizenView && incidents.length > 0) {
+      const victimPos = [incidents[0].latitude, incidents[0].longitude];
+      const assignedAmb = ambulances.find(a => a.assigned_incident === incidents[0].id);
+      
+      if (assignedAmb) {
+        const ambPos = [assignedAmb.latitude, assignedAmb.longitude];
+        const bounds = L.latLngBounds([victimPos, ambPos]);
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+      } else {
+        map.setView(victimPos, 15);
+      }
+    } else {
+      map.setView(center);
+    }
+  }, [center, map, isCitizenView, incidents, ambulances]);
+  
   return null;
 }
 
@@ -81,7 +96,12 @@ const LiveMap = memo(({ ambulances = [], incidents = [], hospitals = [], userLat
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        <MapUpdater center={center} />
+        <MapUpdater 
+          center={center} 
+          ambulances={ambulances} 
+          incidents={incidents} 
+          isCitizenView={isCitizenView} 
+        />
 
         {/* Dynamic Data Layers */}
         <CircleMarker center={center} radius={10} color="#3b82f6" fillColor="#3b82f6" fillOpacity={0.8} weight={3}>
