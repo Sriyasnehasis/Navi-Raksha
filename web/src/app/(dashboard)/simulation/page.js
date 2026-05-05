@@ -112,7 +112,7 @@ export default function SimulationPage() {
       <div style={S.header}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-            <div style={S.brandIcon}><Shield size={20} /></div>
+            <div style={S.brandIcon}><img src="/logo.png" alt="Logo" style={{ width: 24, height: 24, borderRadius: 6 }} /></div>
             <h1 style={S.title}>Simulation <span style={{ color: '#2563eb' }}>Engine</span></h1>
           </div>
           <p style={S.subtitle}>Environment stress-testing & AI logic validation</p>

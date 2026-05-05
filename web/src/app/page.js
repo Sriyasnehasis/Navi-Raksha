@@ -321,7 +321,7 @@ export default function GatewayPage() {
         {/* Header */}
         <header className="gw-header">
           <div className="gw-logo">
-            <div className="gw-logo-icon">🚑</div>
+            <img src="/logo.png" alt="NaviRaksha" style={{ width: 44, height: 44, borderRadius: 12, boxShadow: '0 4px 14px rgba(0,0,0,0.1)' }} />
             <div>
               <div className="gw-logo-text">Navi<span>Raksha</span></div>
               <div className="gw-logo-sub">Emergency AI</div>
