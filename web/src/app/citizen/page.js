@@ -28,6 +28,7 @@ export default function CitizenPortal() {
   const [dispatched, setDispatched] = useState(null);
   const [sending, setSending] = useState(false);
   const [online, setOnline] = useState(false);
+  const [dbStatus, setDbStatus] = useState({ status: 'loading', project: '...' });
 
   useEffect(() => {
     const t = setTimeout(() => setIsClient(true), 0);
@@ -35,6 +36,11 @@ export default function CitizenPortal() {
       fetch(`${BACKEND}/health`)
         .then(res => setOnline(res.ok))
         .catch(() => setOnline(false));
+      
+      fetch(`${BACKEND}/debug/firebase`)
+        .then(res => res.json())
+        .then(data => setDbStatus({ status: data.status, project: data.project_id }))
+        .catch(() => setDbStatus({ status: 'offline', project: 'unknown' }));
     };
     checkHealth();
     const interval = setInterval(checkHealth, 5000);
@@ -303,6 +309,10 @@ export default function CitizenPortal() {
            </div>
            <div style={styles.pill}>
               <span style={{...styles.dot, background: '#DC2626'}} /> LIVE SIGNAL
+           </div>
+           <div style={{ ...styles.pill, opacity: 0.8 }}>
+              <span style={{...styles.dot, background: dbStatus.status === 'connected' ? '#10B981' : '#94A3B8'}} /> 
+              DB: {dbStatus.project || 'Disconnected'}
            </div>
         </div>
         <LiveMap 

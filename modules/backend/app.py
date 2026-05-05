@@ -257,6 +257,20 @@ def get_incidents():
 def get_hospitals(): 
     return jsonify({"hospitals": STATE["hospitals"]})
 
+@app.route('/debug/firebase')
+def debug_firebase():
+    if db:
+        try:
+            project_id = firebase_admin.get_app().project_id
+            return jsonify({
+                "status": "connected",
+                "project_id": project_id,
+                "collection": "incidents"
+            })
+        except Exception as e:
+            return jsonify({"status": "error", "message": str(e)})
+    return jsonify({"status": "disabled", "message": "Firestore not initialized"})
+
 @app.route('/dispatch', methods=['POST'])
 def dispatch():
     data = request.json
