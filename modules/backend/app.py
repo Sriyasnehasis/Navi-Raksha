@@ -260,25 +260,10 @@ def get_hospitals():
 @app.route('/debug/firebase')
 def debug_firebase():
     if db is not None:
-        test_id = f"TEST_{int(time.time())}"
-        write_status = "untested"
-        try:
-            db.collection('incidents').document(test_id).set({
-                "type": "CONNECTION_TEST",
-                "timestamp": datetime.now().isoformat(),
-                "message": "If you see this, Firestore is working!"
-            })
-            write_status = "success"
-            logger.info(f"✅ Firestore DEBUG WRITE Success: {test_id}")
-        except Exception as e:
-            write_status = f"failed: {str(e)}"
-            logger.error(f"❌ Firestore DEBUG WRITE Failed: {e}")
-
         return jsonify({
             "status": "connected",
             "project_id": "navi-raksha",
-            "write_test": write_status,
-            "test_doc": test_id
+            "sync": "active"
         })
     return jsonify({"status": "disabled", "message": "Firestore not initialized"})
 

@@ -209,7 +209,6 @@ export default function CitizenPortal() {
                 value={name} 
                 onChange={(e) => {
                   setName(e.target.value);
-                  localStorage.setItem('naviraksha_citizen_name', e.target.value);
                 }} 
               />
               <input 
@@ -221,7 +220,6 @@ export default function CitizenPortal() {
                 onChange={(e) => {
                   const val = e.target.value.replace(/\D/g, ''); // Only allow digits
                   setPhone(val);
-                  localStorage.setItem('naviraksha_citizen_phone', val);
                 }} 
               />
               <select 
@@ -310,10 +308,10 @@ export default function CitizenPortal() {
            <div style={styles.pill}>
               <span style={{...styles.dot, background: '#DC2626'}} /> LIVE SIGNAL
            </div>
-           <div style={{ ...styles.pill, opacity: 0.8 }}>
-              <span style={{...styles.dot, background: dbStatus.status === 'connected' ? '#10B981' : '#94A3B8'}} /> 
-              DB: {dbStatus.project || 'Disconnected'}
-           </div>
+            <div style={{ ...styles.pill, background: dbStatus.status === 'connected' ? '#F0FDF4' : '#fff', color: dbStatus.status === 'connected' ? '#16A34A' : '#94A3B8' }}>
+               <span style={{...styles.dot, background: dbStatus.status === 'connected' ? '#16A34A' : '#94A3B8'}} /> 
+               {dbStatus.status === 'connected' ? 'Cloud Sync: Active' : 'Offline Storage'}
+            </div>
         </div>
         <LiveMap 
           ambulances={ambulances} 
