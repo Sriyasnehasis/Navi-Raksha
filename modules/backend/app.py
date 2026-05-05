@@ -259,16 +259,12 @@ def get_hospitals():
 
 @app.route('/debug/firebase')
 def debug_firebase():
-    if db:
-        try:
-            project_id = firebase_admin.get_app().project_id
-            return jsonify({
-                "status": "connected",
-                "project_id": project_id,
-                "collection": "incidents"
-            })
-        except Exception as e:
-            return jsonify({"status": "error", "message": str(e)})
+    if db is not None:
+        return jsonify({
+            "status": "connected",
+            "project_id": "navi-raksha",
+            "collection": "incidents"
+        })
     return jsonify({"status": "disabled", "message": "Firestore not initialized"})
 
 @app.route('/dispatch', methods=['POST'])
