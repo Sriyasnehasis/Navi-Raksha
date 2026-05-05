@@ -277,8 +277,17 @@ def dispatch():
     }
     STATE["incidents"].insert(0, new_inc)
     
-    if db:
-        threading.Thread(target=lambda: db.collection('incidents').document(new_inc['id']).set(new_inc)).start()
+    def sync_to_db(doc_id, data):
+        if db:
+            try:
+                db.collection('incidents').document(doc_id).set(data)
+                logger.info(f"✅ Firestore Sync Success: {doc_id}")
+            except Exception as e:
+                logger.error(f"❌ Firestore Sync Failed: {e}")
+        else:
+            logger.warning("⚠️ Firestore DB object is None. Sync skipped.")
+            
+    threading.Thread(target=sync_to_db, args=(new_inc['id'], new_inc)).start()
         
     return jsonify(new_inc)
 

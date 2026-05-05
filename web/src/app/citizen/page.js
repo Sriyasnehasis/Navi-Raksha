@@ -31,11 +31,17 @@ export default function CitizenPortal() {
 
   useEffect(() => {
     const t = setTimeout(() => setIsClient(true), 0);
-    // Check backend connectivity
-    fetch(`${BACKEND}/health`)
-      .then(res => setOnline(res.ok))
-      .catch(() => setOnline(false));
-    return () => clearTimeout(t);
+    const checkHealth = () => {
+      fetch(`${BACKEND}/health`)
+        .then(res => setOnline(res.ok))
+        .catch(() => setOnline(false));
+    };
+    checkHealth();
+    const interval = setInterval(checkHealth, 5000);
+    return () => {
+      clearTimeout(t);
+      clearInterval(interval);
+    };
   }, []);
 
   // REAL GPS LOGIC
