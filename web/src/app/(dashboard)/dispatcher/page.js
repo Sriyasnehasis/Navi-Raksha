@@ -56,7 +56,10 @@ export default function AdminPanel() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", fontFamily: "'DM Sans', sans-serif", background: "#F8FAFC" }}>
       <div style={{ background: "#fff", borderBottom: "1px solid #E2E8F0", padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 10 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0F172A", margin: 0 }}>Admin Intelligence Panel</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <img src="/logo.png" alt="NaviRaksha" style={{ width: 32, height: 32, borderRadius: 8 }} />
+          <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0F172A", margin: 0 }}>Admin Intelligence Panel</h2>
+        </div>
         <div style={{ display: "flex", gap: 20 }}>
           <div style={{textAlign:"right"}}><div style={{fontSize:18,fontWeight:800}}>{incidents.length}</div><div style={{fontSize:9,color:"#94A3B8"}}>ACTIVE SOS</div></div>
           <div style={{textAlign:"right"}}><div style={{fontSize:18,fontWeight:800}}>{ambulances.filter(a=>a.status==='available').length}</div><div style={{fontSize:9,color:"#94A3B8"}}>AVAIL UNITS</div></div>
